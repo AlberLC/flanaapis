@@ -20,7 +20,9 @@ Python 3.10 or higher is required.
     :alt: License
 
 .. |project_version| image:: https://img.shields.io/pypi/v/flanaapis
+    :target: https://pypi.org/project/flanaapis/
     :alt: PyPI
 
 .. |python_version| image:: https://img.shields.io/pypi/pyversions/flanaapis
+    :target: https://www.python.org/downloads/
     :alt: PyPI - Python Version
