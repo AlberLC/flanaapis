@@ -26,17 +26,14 @@ def find_download_urls(text: str) -> list[str]:
 
 
 def get_media_dict_by_download_url(download_url: str, song_data: dict = None) -> dict:
-    if song_data:
-        song_info = Media(
-            song_data['playUrl'],
-            MediaType.AUDIO,
-            Source.TIKTOK,
-            song_data['title'],
-            song_data['authorName'],
-            song_data['album']
-        ) if song_data else None
-    else:
-        song_info = None
+    song_info = Media(
+        song_data['playUrl'],
+        MediaType.AUDIO,
+        Source.TIKTOK,
+        song_data['title'],
+        song_data['authorName'],
+        song_data['album']
+    ) if song_data else None
 
     return Media(download_url, MediaType.VIDEO, Source.TIKTOK, song_info=song_info).to_dict()
 
@@ -67,13 +64,11 @@ async def get_medias(text: str) -> OrderedSet[Media]:
     with concurrent.futures.ProcessPoolExecutor(max_workers=3) as pool:
         for tiktok_id in tiktok_ids:
             result_dict = await asyncio.get_running_loop().run_in_executor(pool, get_media_dict_by_id, tiktok_id)
-            m = Media.from_dict(result_dict, lazy=False)
-            medias.add(m)
+            medias.add(Media.from_dict(result_dict, lazy=False))
 
         for download_url in download_urls:
             result_dict = await asyncio.get_running_loop().run_in_executor(pool, get_media_dict_by_download_url, download_url)
-            m = Media.from_dict(result_dict, lazy=False)
-            medias.add(m)
+            medias.add(Media.from_dict(result_dict, lazy=False))
 
     if not medias:
         raise TikTokMediaNotFoundError
