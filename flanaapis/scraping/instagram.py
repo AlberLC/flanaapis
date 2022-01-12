@@ -120,7 +120,7 @@ async def get_medias(text: str) -> OrderedSet[Media]:
             try:
                 html = await flanautils.get_request(instagram_url, session=session)
             except ResponseError:
-                medias.add(Media(type_=MediaType.ERROR))
+                medias.add(Media(type_=MediaType.ERROR, source=Source.INSTAGRAM))
             else:
                 medias.update(select_content_urls(find_media_urls(html)))
 
