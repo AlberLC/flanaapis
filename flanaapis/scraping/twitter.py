@@ -1,5 +1,6 @@
 import os
 import re
+from typing import Iterable
 
 import aiohttp
 import flanautils
@@ -13,7 +14,7 @@ BEARER_TOKEN = os.environ['TWITTER_BEARER_TOKEN']
 HEADERS = {'Authorization': f'Bearer {BEARER_TOKEN}'}
 
 
-@return_if_first_empty([])
+@return_if_first_empty(OrderedSet)
 def find_tweet_ids(text: str | list[str]) -> OrderedSet[str]:
     if isinstance(text, list):
         text = ''.join(text)
@@ -29,7 +30,7 @@ async def get_tweets_data(url: str, params: dict) -> dict:
 
 
 @return_if_first_empty([])
-async def get_referenced_tweets(tweet_ids: list[str]) -> list[str]:
+async def get_referenced_tweets(tweet_ids: Iterable[str]) -> list[str]:
     try:
         tweets_data = await get_tweets_data(TWITTER_ENDPOINT_V2, params={'ids': ','.join(tweet_ids), 'expansions': 'attachments.media_keys', 'media.fields': 'media_key', 'tweet.fields': 'entities'})
     except ResponseError:
