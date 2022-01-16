@@ -17,6 +17,7 @@ main_router = APIRouter(prefix='/flanaapis')
 main_router.include_router(flanaapis.geolocation.routes.router)
 main_router.include_router(flanaapis.scraping.routes.router)
 main_router.include_router(flanaapis.weather.routes.router)
+
 app = FastAPI()
 app.include_router(main_router)
 
