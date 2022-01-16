@@ -1,7 +1,11 @@
 import os
-import sys
 
 import flanautils
+
+os.environ |= flanautils.find_environment_variables('../.env')
+
+import sys
+
 import uvicorn
 from fastapi import APIRouter, FastAPI
 
@@ -13,13 +17,10 @@ main_router = APIRouter(prefix='/flanaapis')
 main_router.include_router(flanaapis.geolocation.routes.router)
 main_router.include_router(flanaapis.scraping.routes.router)
 main_router.include_router(flanaapis.weather.routes.router)
-
 app = FastAPI()
 app.include_router(main_router)
 
 if __name__ == '__main__':
-    os.environ |= flanautils.find_environment_variables('../.env')
-
     try:
         host = sys.argv[1]
     except IndexError:
@@ -29,4 +30,4 @@ if __name__ == '__main__':
     except IndexError:
         port = os.environ.get('FLANAAPIS_PORT')
 
-    uvicorn.run('main:app', host=host, port=port)
+    uvicorn.run('main:app', host=host, port=int(port))
