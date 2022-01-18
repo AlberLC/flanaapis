@@ -40,7 +40,7 @@ async def find_place_showing_progress(place_name: str) -> AsyncIterable[str | Pl
         async with await p.chromium.launch() as browser:
             try:
                 page: playwright.async_api.Page = await browser.new_page()
-                yield 'Dirigiendome a google.es/maps...'
+                yield 'Dirigiéndome a google.es/maps...'
                 await page.goto(f"https://www.google.es/maps/search/{'+'.join(place_name.split())}")
                 yield 'Aceptando consentimiento de privacidad...'
                 await page.click("'Acepto'")
