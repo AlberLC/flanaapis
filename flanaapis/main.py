@@ -25,7 +25,7 @@ if __name__ == '__main__':
     try:
         host = sys.argv[1]
     except IndexError:
-        host = os.environ.get('FLANAAPIS_ADDRESS')
+        host = os.environ.get('FLANAAPIS_HOST')
     try:
         port = sys.argv[2]
     except IndexError:
