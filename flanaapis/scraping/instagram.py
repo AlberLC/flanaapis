@@ -75,8 +75,8 @@ def select_content_urls(media_urls: list[str]) -> OrderedSet[Media]:
         url: str
         size: float = field(default=float('inf'), compare=False, hash=False)
 
-    video_urls = defaultdict(OrderedSet)
-    image_urls = defaultdict(OrderedSet)
+    video_urls_groups = defaultdict(OrderedSet)
+    image_urls_groups = defaultdict(OrderedSet)
     ignored_image_marks = []
 
     media_position = 0
@@ -104,7 +104,7 @@ def select_content_urls(media_urls: list[str]) -> OrderedSet[Media]:
                 continue
 
             media_mark = find_media_mark(media_url)
-            video_urls[media_mark].add(CandidateUrl(media_position, media_url, find_media_size(media_url)))
+            video_urls_groups[media_mark].add(CandidateUrl(media_position, media_url, find_media_size(media_url)))
             media_position += 1
             last_was_video = True
         elif '.jpg' in media_url:
@@ -115,14 +115,14 @@ def select_content_urls(media_urls: list[str]) -> OrderedSet[Media]:
             last_was_video = False
 
             if media_mark not in ignored_image_marks:
-                image_urls[media_mark].add(CandidateUrl(media_position, media_url, find_media_size(media_url)))
+                image_urls_groups[media_mark].add(CandidateUrl(media_position, media_url, find_media_size(media_url)))
                 media_position += 1
 
     best_candidate_urls: list[CandidateUrl] = []
-    for image_urls_ in image_urls.values():
-        best_candidate_urls.append(sorted(image_urls_, key=lambda u: u.size, reverse=True)[0])
-    for video_urls_ in video_urls.values():
-        best_candidate_urls.append(video_urls_[0])
+    for image_urls_group in image_urls_groups.values():
+        best_candidate_urls.append(sorted(image_urls_group, key=lambda u: u.size, reverse=True)[0])
+    for video_urls_group in video_urls_groups.values():
+        best_candidate_urls.append(video_urls_group[0])
 
     content_medias = OrderedSet()
     for best_candidate_url in sorted(best_candidate_urls, key=lambda u: u.position):

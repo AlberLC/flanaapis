@@ -1,10 +1,9 @@
 FROM flanaganvaquero/flanawright
 
 WORKDIR /application
-COPY flanaapis flanaapis
-COPY requirements.txt .
 
-RUN pip3.10 install -r requirements.txt
+COPY flanaapis flanaapis
+COPY venv/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
 
 ENV PYTHONPATH=/application
 
