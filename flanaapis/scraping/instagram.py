@@ -1,5 +1,7 @@
 import os
 import re
+from collections import defaultdict
+from dataclasses import dataclass, field
 from typing import Iterable
 
 import aiohttp
@@ -54,16 +56,31 @@ def find_media_urls(text: str) -> list[str]:
 
 def find_media_mark(text: str) -> str:
     try:
-        return re.findall(r'\w+\.jpg\?', text)[0]
+        return re.findall(r'\w+\.(?:jpg|mp4)\?', text)[0]
     except IndexError:
         return ''
 
 
+def find_media_size(text: str) -> float:
+    try:
+        return float(re.findall(r'/[sp](\d+)x\d+/', text)[0])
+    except IndexError:
+        return float('inf')
+
+
 def select_content_urls(media_urls: list[str]) -> OrderedSet[Media]:
-    content_medias = OrderedSet()
-    ignore_images_of_video = False
+    @dataclass(unsafe_hash=True)
+    class CandidateUrl:
+        position: int = field(compare=False, hash=False)
+        url: str
+        size: float = field(default=float('inf'), compare=False, hash=False)
+
+    video_urls = defaultdict(OrderedSet)
+    image_urls = defaultdict(OrderedSet)
+    ignored_image_marks = []
+
+    media_position = 0
     last_was_video = False
-    jpg_mark = ''
     for media_url in reversed(media_urls):
         if (
                 re.findall(r'-19/s\d+x\d+', media_url)
@@ -72,33 +89,45 @@ def select_content_urls(media_urls: list[str]) -> OrderedSet[Media]:
                 or
                 '/sh' in media_url
                 or
+                'mp4?_nc_ht' in media_url
+                or
+                '&oh=00_AT_' in media_url
+                or
                 'scontent-mad1-1.' not in media_url
                 or
                 not re.findall(r'-\d{2}(/\w{3})?(/[sp]\d+x\d+)?/\w+\.(jpg|mp4)\?', media_url)
         ):
             continue
 
-        media_type: MediaType | None = None
-        if '.mp4?' in media_url:
-            if not last_was_video:
-                ignore_images_of_video = True
-                last_was_video = True
-                jpg_mark = ''
-                media_type = MediaType.VIDEO
-        elif '.jpg?' in media_url:
-            if jpg_mark:
-                if jpg_mark in media_url:
-                    if ignore_images_of_video:
-                        continue
-                media_type = MediaType.IMAGE
-                ignore_images_of_video = False
-            elif not ignore_images_of_video:
-                media_type = MediaType.IMAGE
-            jpg_mark = find_media_mark(media_url)
+        if '.mp4' in media_url:
+            if last_was_video:
+                continue
+
+            media_mark = find_media_mark(media_url)
+            video_urls[media_mark].add(CandidateUrl(media_position, media_url, find_media_size(media_url)))
+            media_position += 1
+            last_was_video = True
+        elif '.jpg' in media_url:
+            media_mark = find_media_mark(media_url)
+
+            if last_was_video:
+                ignored_image_marks.append(media_mark)
             last_was_video = False
 
-        if media_type:
-            content_medias.add(Media(media_url, media_type, Source.INSTAGRAM))
+            if media_mark not in ignored_image_marks:
+                image_urls[media_mark].add(CandidateUrl(media_position, media_url, find_media_size(media_url)))
+                media_position += 1
+
+    best_candidate_urls: list[CandidateUrl] = []
+    for image_mark, image_urls_ in image_urls.items():
+        best_candidate_urls.append(sorted(image_urls_, key=lambda u: u.size, reverse=True)[0])
+    for video_mark, video_urls_ in video_urls.items():
+        best_candidate_urls.append(video_urls_[0])
+
+    content_medias = OrderedSet()
+    for best_candidate_url in sorted(best_candidate_urls, key=lambda u: u.position):
+        url = best_candidate_url.url
+        content_medias.add(Media(url, MediaType.IMAGE if '.jpg' in url else MediaType.VIDEO, Source.INSTAGRAM))
 
     content_medias.reverse()  # because was reversed in the for
     return content_medias
