@@ -119,9 +119,9 @@ def select_content_urls(media_urls: list[str]) -> OrderedSet[Media]:
                 media_position += 1
 
     best_candidate_urls: list[CandidateUrl] = []
-    for image_mark, image_urls_ in image_urls.items():
+    for image_urls_ in image_urls.values():
         best_candidate_urls.append(sorted(image_urls_, key=lambda u: u.size, reverse=True)[0])
-    for video_mark, video_urls_ in video_urls.items():
+    for video_urls_ in video_urls.values():
         best_candidate_urls.append(video_urls_[0])
 
     content_medias = OrderedSet()
