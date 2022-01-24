@@ -56,7 +56,7 @@ def find_media_urls(text: str) -> list[str]:
 
 def find_media_mark(text: str) -> str:
     try:
-        return re.findall(r'\w+\.(?:jpg|mp4)\?', text)[0]
+        return re.findall(r'[\w.]+\.(?:jpg|mp4)\?', text)[0]
     except IndexError:
         return ''
 
@@ -95,7 +95,7 @@ def select_content_urls(media_urls: list[str]) -> OrderedSet[Media]:
                 or
                 'scontent-mad1-1.' not in media_url
                 or
-                not re.findall(r'-\d{2}(/\w{3})?(/[sp]\d+x\d+)?/\w+\.(jpg|mp4)\?', media_url)
+                not re.findall(r'-\d{2}(/\w{3})?(/[sp]\d+x\d+)?/[\w.]+\.(jpg|mp4)\?', media_url)
         ):
             continue
 
