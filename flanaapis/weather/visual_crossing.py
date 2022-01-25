@@ -35,22 +35,6 @@ def create_instant_weather_by_data(data: dict, timezone: datetime.timezone) -> I
     )
 
 
-async def get_weather_api_data(latitude: float, longitude: float) -> tuple[dict, datetime.timezone]:
-    now = datetime.datetime.now()
-    start_date = now - datetime.timedelta(days=5)
-    end_date = now + datetime.timedelta(days=15)
-    parameters = {
-        'key': os.environ['VISUAL_CROSSING_API_KEY'],
-        'unitGroup': 'metric',
-        'lang': 'es'
-    }
-
-    api_data = await flanautils.get_request(f'{BASE_ENDPOINT}/{latitude},{longitude}/{int(start_date.timestamp())}/{int(end_date.timestamp())}', parameters)
-    timezone = datetime.timezone(datetime.timedelta(hours=api_data['tzoffset']))
-
-    return api_data, timezone
-
-
 @overload
 async def get_day_weathers_by_place(place: Place) -> tuple[InstantWeather, list[DayWeather]]:
     pass
@@ -111,3 +95,19 @@ async def get_day_weathers_by_place(latitude: float, longitude: float = None) ->
     flanaapis.weather.functions.clear_past_precipitation_probability(day_weathers, timezone)
 
     return current_weather, day_weathers
+
+
+async def get_weather_api_data(latitude: float, longitude: float) -> tuple[dict, datetime.timezone]:
+    now = datetime.datetime.now()
+    start_date = now - datetime.timedelta(days=5)
+    end_date = now + datetime.timedelta(days=15)
+    parameters = {
+        'key': os.environ['VISUAL_CROSSING_API_KEY'],
+        'unitGroup': 'metric',
+        'lang': 'es'
+    }
+
+    api_data = await flanautils.get_request(f'{BASE_ENDPOINT}/{latitude},{longitude}/{int(start_date.timestamp())}/{int(end_date.timestamp())}', parameters)
+    timezone = datetime.timezone(datetime.timedelta(hours=api_data['tzoffset']))
+
+    return api_data, timezone
