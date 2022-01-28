@@ -36,22 +36,22 @@ def create_instant_weather_by_data(data: dict, timezone: datetime.timezone) -> I
 
 
 @overload
-async def get_day_weathers_by_place(place: Place) -> tuple[InstantWeather, list[DayWeather]]:
+async def get_day_weathers_by_place(place: Place) -> tuple[InstantWeather | None, list[DayWeather] | None]:
     pass
 
 
 @overload
-async def get_day_weathers_by_place(place_name: str) -> tuple[InstantWeather, list[DayWeather]]:
+async def get_day_weathers_by_place(place_query: str) -> tuple[InstantWeather | None, list[DayWeather] | None]:
     pass
 
 
 @overload
-async def get_day_weathers_by_place(latitude: float, longitude: float) -> tuple[InstantWeather, list[DayWeather]]:
+async def get_day_weathers_by_place(latitude: float, longitude: float) -> tuple[InstantWeather | None, list[DayWeather] | None]:
     pass
 
 
-async def get_day_weathers_by_place(latitude: float, longitude: float = None) -> tuple[InstantWeather | None, list[DayWeather] | None]:
-    latitude, longitude = await flanaapis.geolocation.functions.parse_place_arguments(latitude, longitude)
+async def get_day_weathers_by_place(latitude: float | str, longitude: float = None) -> tuple[InstantWeather | None, list[DayWeather] | None]:
+    latitude, longitude = await flanaapis.geolocation.functions.ensure_coordinates(latitude, longitude)
 
     try:
         api_data, timezone = await get_weather_api_data(latitude, longitude)
@@ -74,18 +74,18 @@ async def get_day_weathers_by_place(latitude: float, longitude: float = None) ->
         )
 
         # Daily precipitation volumes
-        if day_rain_volume := day_data.get('precip'):
+        if day_rain_volume := day_data.get('precip') or 0:
             precipitations.append(Precipitation(PrecipitationType.RAIN, day_date, day_date + datetime.timedelta(days=1), day_rain_volume))
-        if day_snow_volume := day_data.get('snow'):
+        if day_snow_volume := day_data.get('snow') or 0:
             precipitations.append(Precipitation(PrecipitationType.SNOW, day_date, day_date + datetime.timedelta(days=1), day_snow_volume * 10))  # snow cm -> mm
 
         # Hourly precipitation volumes
         for hour_data in day_data.get('hours', ()):
             day_weather.instant_weathers.append(create_instant_weather_by_data(hour_data, timezone))
             hour_date = datetime.datetime.fromtimestamp(hour_data['datetimeEpoch'], timezone)
-            if hour_rain_volume := hour_data.get('precip'):
+            if hour_rain_volume := hour_data.get('precip') or 0:
                 precipitations.append(Precipitation(PrecipitationType.RAIN, hour_date, hour_date + datetime.timedelta(hours=1), hour_rain_volume))
-            if hour_snow_volume := hour_data.get('snow'):
+            if hour_snow_volume := hour_data.get('snow') or 0:
                 precipitations.append(Precipitation(PrecipitationType.SNOW, hour_date, hour_date + datetime.timedelta(hours=1), hour_snow_volume * 10))  # snow cm -> mm
 
         day_weather.distribute_precipitation_volume(precipitations)

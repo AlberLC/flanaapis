@@ -1,5 +1,5 @@
 __all__ = [
-    'add_daily_attributes_from_current_data',
+    'add_daily_attributes_from_current_data_format',
     'create_instant_weather_by_data',
     'get_day_weathers_by_place',
     'get_hourly_precipitation',
@@ -31,7 +31,7 @@ PRESENT_FUTURE_ENDPOINT = f'{BASE_ENDPOINT}/onecall'
 MAX_RETRIES_PAST_REQUEST = 5
 
 
-def add_daily_attributes_from_current_data(day_weathers: Iterable[DayWeather], data: dict, timezone: datetime.timezone):
+def add_daily_attributes_from_current_data_format(day_weathers: Iterable[DayWeather], data: dict, timezone: datetime.timezone):
     date_time = datetime.datetime.fromtimestamp(data['current']['dt'], tz=timezone)
     day_weather = flanautils.find(day_weathers, condition=lambda day_weather_: day_weather_.date == date_time.date())
     try:
@@ -80,7 +80,7 @@ async def get_day_weathers_by_place(place: Place) -> tuple[InstantWeather, list[
 
 
 @overload
-async def get_day_weathers_by_place(place_name: str) -> tuple[InstantWeather, list[DayWeather]]:
+async def get_day_weathers_by_place(place_query: str) -> tuple[InstantWeather, list[DayWeather]]:
     pass
 
 
@@ -89,8 +89,8 @@ async def get_day_weathers_by_place(latitude: float, longitude: float) -> tuple[
     pass
 
 
-async def get_day_weathers_by_place(latitude: float, longitude: float = None) -> tuple[InstantWeather, list[DayWeather]]:
-    latitude, longitude = await flanaapis.geolocation.functions.parse_place_arguments(latitude, longitude)
+async def get_day_weathers_by_place(latitude: float | str, longitude: float = None) -> tuple[InstantWeather, list[DayWeather]]:
+    latitude, longitude = await flanaapis.geolocation.functions.ensure_coordinates(latitude, longitude)
 
     day_weathers = []
 
@@ -107,8 +107,7 @@ async def get_day_weathers_by_place(latitude: float, longitude: float = None) ->
         hour_dt = datetime.datetime.fromtimestamp(hour_data['dt'], tz=timezone)
         day_weather = flanautils.find(day_weathers, condition=lambda day_weather_: day_weather_.date == hour_dt.date())
         if not day_weather or hour_dt.date() != day_weather.date:
-            day_weathers.append(DayWeather(hour_dt.date(), timezone))
-            day_weather = day_weathers[-1]
+            day_weathers.append(day_weather := DayWeather(hour_dt.date(), timezone))
 
         if hourly_precipitations := get_hourly_precipitations(hour_dt, hour_data):
             precipitations.extend(hourly_precipitations)
@@ -119,9 +118,9 @@ async def get_day_weathers_by_place(latitude: float, longitude: float = None) ->
 
     # ----- daily data -----
     for past_day_data in past_days_data:
-        add_daily_attributes_from_current_data(day_weathers, past_day_data, timezone)
+        add_daily_attributes_from_current_data_format(day_weathers, past_day_data, timezone)
 
-    add_daily_attributes_from_current_data(day_weathers, present_future_data, timezone)
+    add_daily_attributes_from_current_data_format(day_weathers, present_future_data, timezone)
 
     for future_day_data in present_future_data['daily']:
         day_dt = datetime.datetime.fromtimestamp(future_day_data['dt'], tz=timezone).replace(hour=0)
@@ -134,9 +133,9 @@ async def get_day_weathers_by_place(latitude: float, longitude: float = None) ->
         day_weather.sunset = datetime.datetime.fromtimestamp(future_day_data['sunset'], timezone)
         day_weather.min_temperature = future_day_data['temp']['min']
         day_weather.max_temperature = future_day_data['temp']['max']
-        if daily_rain := future_day_data.get('rain'):
+        if daily_rain := future_day_data.get('rain') or 0:
             precipitations.append(Precipitation(PrecipitationType.RAIN, day_dt, day_dt + datetime.timedelta(days=1), daily_rain))
-        if daily_snow := future_day_data.get('snow'):
+        if daily_snow := future_day_data.get('snow') or 0:
             precipitations.append(Precipitation(PrecipitationType.SNOW, day_dt, day_dt + datetime.timedelta(days=1), daily_snow))
 
         temp_day_weather = DayWeather()
