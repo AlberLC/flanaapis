@@ -50,11 +50,6 @@ class InstantWeather(MeanBase, FlanaBase):
     wind_gust: float = field(default=None, metadata={'unit': 'km/h'})
     wind_speed: float = field(default=None, metadata={'unit': 'km/h'})
 
-    def __post_init__(self):
-        self.clouds = self.clouds or 0
-        self.rain_volume = self.rain_volume or 0
-        self.snow_volume = self.snow_volume or 0
-
     def _dict_repr(self) -> Any:
         self_vars = super()._dict_repr()
         for k, v in self_vars.items():
