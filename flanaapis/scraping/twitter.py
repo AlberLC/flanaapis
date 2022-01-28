@@ -21,37 +21,6 @@ def find_tweet_ids(text: str | list[str]) -> OrderedSet[str]:
     return OrderedSet(re.findall(r'atus/(\d+)', text))
 
 
-async def get_tweets_data(url: str, params: dict) -> dict:
-    data = await flanautils.get_request(url, params, headers=HEADERS)
-    try:
-        return data['data']
-    except (TypeError, KeyError):
-        return data
-
-
-@return_if_first_empty([])
-async def get_referenced_tweets(tweet_ids: Iterable[str]) -> list[str]:
-    try:
-        tweets_data = await get_tweets_data(TWITTER_ENDPOINT_V2, params={'ids': ','.join(tweet_ids), 'expansions': 'attachments.media_keys', 'media.fields': 'media_key', 'tweet.fields': 'entities'})
-    except ResponseError:
-        return []
-
-    referenced_tweets = []
-    for tweet in tweets_data:
-        try:
-            urls = tweet['entities']['urls']
-        except (KeyError, TypeError):
-            continue
-
-        for url in urls:
-            try:
-                referenced_tweets.append(url['expanded_url'])
-            except KeyError:
-                continue
-
-    return referenced_tweets
-
-
 def get_all_medias_from_tweet(tweet_medias_data: dict) -> OrderedSet[Media]:
     tweet_medias = OrderedSet()
     for tweet_media_data in tweet_medias_data:
@@ -107,3 +76,34 @@ async def get_medias(text: str) -> OrderedSet[Media]:
         raise TwitterMediaNotFoundError()
 
     return medias
+
+
+@return_if_first_empty([])
+async def get_referenced_tweets(tweet_ids: Iterable[str]) -> list[str]:
+    try:
+        tweets_data = await get_tweets_data(TWITTER_ENDPOINT_V2, params={'ids': ','.join(tweet_ids), 'expansions': 'attachments.media_keys', 'media.fields': 'media_key', 'tweet.fields': 'entities'})
+    except ResponseError:
+        return []
+
+    referenced_tweets = []
+    for tweet in tweets_data:
+        try:
+            urls = tweet['entities']['urls']
+        except (KeyError, TypeError):
+            continue
+
+        for url in urls:
+            try:
+                referenced_tweets.append(url['expanded_url'])
+            except KeyError:
+                continue
+
+    return referenced_tweets
+
+
+async def get_tweets_data(url: str, params: dict) -> dict:
+    data = await flanautils.get_request(url, params, headers=HEADERS)
+    try:
+        return data['data']
+    except (TypeError, KeyError):
+        return data
