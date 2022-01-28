@@ -19,6 +19,54 @@ INSTAGRAM_CONTENT_PATH = 'p/'
 cookies = None
 
 
+def find_instagram_ids(text: str) -> OrderedSet[str]:
+    return OrderedSet(re.findall(r'/(?:p|reel|tv)/(.{11})', text))
+
+
+def find_media_mark(text: str) -> str:
+    try:
+        return re.findall(r'[\w.]+\.(?:jpg|mp4)\?', text)[0]
+    except IndexError:
+        return ''
+
+
+def find_media_size(text: str) -> float:
+    try:
+        return float(re.findall(r'/[sp](\d+)x\d+/', text)[0])
+    except IndexError:
+        return float('inf')
+
+
+def find_media_urls(text: str) -> list[str]:
+    return re.findall(r'https.*?sid=\w{6}', text)
+
+
+async def get_medias(text: str) -> OrderedSet[Media]:
+    medias: OrderedSet[Media] = OrderedSet()
+
+    if not (instagram_urls := make_instagram_urls(find_instagram_ids(text))):
+        return medias
+
+    async with aiohttp.ClientSession() as session:
+        if not cookies:
+            await login(session)
+
+        session._cookie_jar = cookies
+
+        for instagram_url in instagram_urls:
+            try:
+                html = await flanautils.get_request(instagram_url, session=session)
+            except ResponseError:
+                medias.add(Media(type_=MediaType.ERROR, source=Source.INSTAGRAM))
+            else:
+                medias.update(select_content_urls(find_media_urls(html)))
+
+    if not medias:
+        raise InstagramMediaNotFoundError
+
+    return medias
+
+
 async def login(session: aiohttp.ClientSession):
     global cookies
 
@@ -42,30 +90,8 @@ async def login(session: aiohttp.ClientSession):
     cookies = session.cookie_jar
 
 
-def find_instagram_ids(text: str) -> OrderedSet[str]:
-    return OrderedSet(re.findall(r'/(?:p|reel|tv)/(.{11})', text))
-
-
 def make_instagram_urls(codes: Iterable[str]) -> list[str]:
     return [f'{INSTAGRAM_BASE_URL}{INSTAGRAM_CONTENT_PATH}{code}' for code in codes]
-
-
-def find_media_urls(text: str) -> list[str]:
-    return re.findall(r'https.*?sid=\w{6}', text)
-
-
-def find_media_mark(text: str) -> str:
-    try:
-        return re.findall(r'[\w.]+\.(?:jpg|mp4)\?', text)[0]
-    except IndexError:
-        return ''
-
-
-def find_media_size(text: str) -> float:
-    try:
-        return float(re.findall(r'/[sp](\d+)x\d+/', text)[0])
-    except IndexError:
-        return float('inf')
 
 
 def select_content_urls(media_urls: list[str]) -> OrderedSet[Media]:
@@ -92,6 +118,8 @@ def select_content_urls(media_urls: list[str]) -> OrderedSet[Media]:
                 'mp4?_nc_ht' in media_url
                 or
                 '&oh=00_AT_' in media_url
+                or
+                'cache_key' in media_url
                 or
                 'scontent-mad1-1.' not in media_url
                 or
@@ -131,29 +159,3 @@ def select_content_urls(media_urls: list[str]) -> OrderedSet[Media]:
 
     content_medias.reverse()  # because was reversed in the for
     return content_medias
-
-
-async def get_medias(text: str) -> OrderedSet[Media]:
-    medias: OrderedSet[Media] = OrderedSet()
-
-    if not (instagram_urls := make_instagram_urls(find_instagram_ids(text))):
-        return medias
-
-    async with aiohttp.ClientSession() as session:
-        if not cookies:
-            await login(session)
-
-        session._cookie_jar = cookies
-
-        for instagram_url in instagram_urls:
-            try:
-                html = await flanautils.get_request(instagram_url, session=session)
-            except ResponseError:
-                medias.add(Media(type_=MediaType.ERROR, source=Source.INSTAGRAM))
-            else:
-                medias.update(select_content_urls(find_media_urls(html)))
-
-    if not medias:
-        raise InstagramMediaNotFoundError
-
-    return medias
