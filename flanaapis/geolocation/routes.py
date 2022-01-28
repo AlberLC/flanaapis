@@ -1,19 +1,45 @@
 from fastapi import APIRouter
+from pydantic import BaseModel
 
 from flanaapis.geolocation import functions, open_street_map
 
 router = APIRouter()
 
 
-@router.get("/place")
-async def find_place(name: str, near_to_latitude: float = None, near_to_longitude: float = None):
+class PlaceOutput(BaseModel):
+    name: str = None
+    latitude: float = None
+    longitude: float = None
+    country: str = None
+    country_code: str = None
+    state: str = None
+    state_district: str = None
+    county: str = None
+    city: str = None
+    borough: str = None
+    postcode: str = None
+    neighbourhood: str = None
+    road: str = None
+    number: str = None
+    amenity: str = None
+
+
+@router.get("/place", response_model=PlaceOutput, response_model_exclude_defaults=True, response_model_exclude_unset=True)
+async def find_place(query: str, near_to_latitude: float = None, near_to_longitude: float = None, fast: bool = False):
     match near_to_latitude, near_to_longitude:
         case [float(), _] | [_, float()]:
-            return (await open_street_map.find_place(name, near_to_latitude, near_to_longitude)).to_dict()
+            return (await open_street_map.find_place(query, near_to_latitude, near_to_longitude)).to_dict()
+        case _ if fast:
+            return (await open_street_map.find_place(query, near_to_latitude, near_to_longitude)).to_dict()
         case _:
-            return (await functions.find_place(name)).to_dict()
+            return (await functions.find_place(query)).to_dict()
 
 
-@router.get("/places")
-async def find_places(name: str):
-    return [place.to_dict() for place in await open_street_map.find_places(name)]
+@router.get("/places", response_model=list[PlaceOutput], response_model_exclude_defaults=True, response_model_exclude_unset=True)
+async def find_places(query: str, fast: bool = False):
+    return [place.to_dict() for place in await open_street_map.find_places(query)]
+
+
+@router.get("/timezone")
+async def find_places(query: str, fast: bool = False):
+    return await functions.get_timezone_data(query, fast) or {}
