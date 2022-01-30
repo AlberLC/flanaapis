@@ -1,7 +1,5 @@
 import os
 import re
-from collections import defaultdict
-from dataclasses import dataclass, field
 from typing import Iterable
 
 import aiohttp
@@ -95,67 +93,18 @@ def make_instagram_urls(codes: Iterable[str]) -> list[str]:
 
 
 def select_content_urls(media_urls: list[str]) -> OrderedSet[Media]:
-    @dataclass(unsafe_hash=True)
-    class CandidateUrl:
-        position: int = field(compare=False, hash=False)
-        url: str
-        size: float = field(default=float('inf'), compare=False, hash=False)
-
-    video_urls_groups = defaultdict(OrderedSet)
-    image_urls_groups = defaultdict(OrderedSet)
-    ignored_image_marks = []
-
-    media_position = 0
-    last_was_video = False
-    for media_url in reversed(media_urls):
-        if (
-                re.findall(r'-19/s\d+x\d+', media_url)
-                or
-                '-19/' in media_url
-                or
-                '/sh' in media_url
-                or
-                'mp4?_nc_ht' in media_url
-                or
-                '&oh=00_AT_' in media_url
-                or
-                'cache_key' in media_url
-                or
-                'scontent-mad1-1.' not in media_url
-                or
-                not re.findall(r'-\d{2}(/\w{3})?(/[sp]\d+x\d+)?/[\w.]+\.(jpg|mp4)\?', media_url)
-        ):
+    was_last_image = False
+    final_urls = []
+    for media_url in media_urls:
+        if not re.findall(r'e35/\d+', media_url) and '.mp4?efg' not in media_url:
             continue
 
-        if '.mp4' in media_url:
-            if last_was_video:
-                continue
+        if '.jpg?' in media_url:
+            was_last_image = True
+            final_urls.append(media_url)
+        elif was_last_image:
+            was_last_image = False
+            final_urls.pop()
+            final_urls.append(media_url)
 
-            media_mark = find_media_mark(media_url)
-            video_urls_groups[media_mark].add(CandidateUrl(media_position, media_url, find_media_size(media_url)))
-            media_position += 1
-            last_was_video = True
-        elif '.jpg' in media_url:
-            media_mark = find_media_mark(media_url)
-
-            if last_was_video:
-                ignored_image_marks.append(media_mark)
-            last_was_video = False
-
-            if media_mark not in ignored_image_marks:
-                image_urls_groups[media_mark].add(CandidateUrl(media_position, media_url, find_media_size(media_url)))
-                media_position += 1
-
-    best_candidate_urls: list[CandidateUrl] = []
-    for image_urls_group in image_urls_groups.values():
-        best_candidate_urls.append(sorted(image_urls_group, key=lambda u: u.size, reverse=True)[0])
-    for video_urls_group in video_urls_groups.values():
-        best_candidate_urls.append(video_urls_group[0])
-
-    content_medias = OrderedSet()
-    for best_candidate_url in sorted(best_candidate_urls, key=lambda u: u.position):
-        url = best_candidate_url.url
-        content_medias.add(Media(url, MediaType.IMAGE if '.jpg' in url else MediaType.VIDEO, Source.INSTAGRAM))
-
-    content_medias.reverse()  # because was reversed in the for
-    return content_medias
+    return OrderedSet(Media(final_url, MediaType.IMAGE if '.jpg?' in final_url else MediaType.VIDEO, Source.INSTAGRAM) for final_url in final_urls)

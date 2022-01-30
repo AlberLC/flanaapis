@@ -184,7 +184,7 @@ class DayWeather(MeanBase, FlanaBase):
 
         final_instant_weathers = []
         for hour in range(24):
-            instant_weathers = [next(iter(day_weather.get_instant_weathers_by_hour(hour)), None) for day_weather in objects]
+            instant_weathers = [instant_weather for day_weather in objects if (instant_weather := next(iter(day_weather.get_instant_weathers_by_hour(hour)), None))]
             if instant_weathers:
                 final_instant_weathers.append(InstantWeather.mean(instant_weathers, ratios))
 

@@ -9,6 +9,11 @@ from flanautils import Media, MediaType, OrderedSet, Source
 from flanaapis.exceptions import TikTokMediaNotFoundError
 
 
+def find_download_urls(text: str) -> list[str]:
+    partial_download_urls = re.findall(r'web\.tiktok\.com.+=&vr=', text)
+    return [f'https://v16-{partial_download_url}' for partial_download_url in partial_download_urls]
+
+
 def find_tiktok_ids(text: str) -> OrderedSet[str]:
     return OrderedSet(re.findall(r'v(?:ideo)?/(\d+)', text))
 
@@ -18,11 +23,6 @@ async def find_tiktok_ids_by_mobile_urls(text: str) -> OrderedSet[str]:
     mobile_tiktok_urls = [f'https://vm.tiktok.com/{mobile_id}/' for mobile_id in mobile_ids]
     tiktok_urls_gen = [str((await flanautils.get_request(mobile_tiktok_url, return_response=True)).url) for mobile_tiktok_url in mobile_tiktok_urls]
     return find_tiktok_ids(''.join(tiktok_urls_gen))
-
-
-def find_download_urls(text: str) -> list[str]:
-    partial_download_urls = re.findall(r'web\.tiktok\.com.+=&vr=', text)
-    return [f'https://v16-{partial_download_url}' for partial_download_url in partial_download_urls]
 
 
 def get_media_dict_by_download_url(download_url: str, song_data: dict = None) -> dict:
