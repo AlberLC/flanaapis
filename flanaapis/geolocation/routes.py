@@ -35,6 +35,7 @@ async def find_place(query: str, near_to_latitude: float = None, near_to_longitu
             return (await functions.find_place(query)).to_dict()
 
 
+# noinspection PyUnusedLocal
 @router.get("/places", response_model=list[PlaceOutput], response_model_exclude_defaults=True, response_model_exclude_unset=True)
 async def find_places(query: str, fast: bool = False):
     return [place.to_dict() for place in await open_street_map.find_places(query)]
@@ -42,4 +43,4 @@ async def find_places(query: str, fast: bool = False):
 
 @router.get("/timezone")
 async def find_places(query: str, fast: bool = False):
-    return await functions.get_timezone_data(query, fast) or {}
+    return await functions.find_timezone(query, fast) or {}

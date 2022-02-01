@@ -42,7 +42,7 @@ async def get_day_weathers_by_place(latitude: float | str, longitude: float = No
         return None, None
 
     if not timezone:
-        if api_timezone_data := await flanaapis.geolocation.functions.get_timezone_data(latitude, longitude):
+        if api_timezone_data := await flanaapis.geolocation.functions.find_timezone(latitude, longitude):
             timezone = datetime.timezone(datetime.timedelta(seconds=api_timezone_data['gmtOffset']))
         else:
             timezone = datetime.timezone(datetime.timedelta())
