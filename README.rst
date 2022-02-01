@@ -25,7 +25,7 @@ Features
 ~~~~~~~~~~~~~~
 
 1.1) Find a place on earth
-.....................
+..........................
 
 - Library functions:
     - :code:`flanaapis.geolocation.functions.find_place(...)`
@@ -34,7 +34,7 @@ Features
     - https://flanaserver.ddns.net/flanaapis/place?query=36.796171,-4.4779943
 
 1.2) Find places on earth
-.....................
+.........................
 
 - Library functions:
     - :code:`flanaapis.geolocation.functions.find_places(...)`
@@ -43,7 +43,7 @@ Features
     - https://flanaserver.ddns.net/flanaapis/places?query=36.796171,-4.4779943
 
 1.3) Find timezone
-.............
+..................
 
 - Library functions:
     - :code:`flanaapis.geolocation.functions.find_timezone(...)`
