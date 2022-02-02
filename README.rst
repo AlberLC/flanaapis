@@ -89,7 +89,7 @@ It use Twitter api, doesn't really scrape.
 2.4) Google weather
 ...................
 
-Based on https://github.com/lfhohmann/google-weather-scraper.
+Based on `github.com/lfhohmann/google-weather-scraper`_.
 
 - Library functions:
     - :code:`flanaapis.scraping.google_weather_scraper.get_forecast(...)`
@@ -101,6 +101,12 @@ Based on https://github.com/lfhohmann/google-weather-scraper.
 
 3) Weather
 ~~~~~~~~~~
+
+Gets the mean of the data from several sources:
+
+1. `openweathermap.org`_
+2. `visualcrossing.com`_
+3. `google.com/search?q=weather`_
 
 - Library functions:
     - :code:`flanaapis.functions.weather.get_day_weathers_by_place(...)`
@@ -120,3 +126,8 @@ Based on https://github.com/lfhohmann/google-weather-scraper.
 .. |python_version| image:: https://img.shields.io/pypi/pyversions/flanaapis
     :target: https://www.python.org/downloads/
     :alt: PyPI - Python Version
+
+.. _github.com/lfhohmann/google-weather-scraper: https://github.com/lfhohmann/google-weather-scraper
+.. _openweathermap.org: https://openweathermap.org/
+.. _visualcrossing.com: https://www.visualcrossing.com/
+.. _google.com/search?q=weather: https://www.google.com/search?q=weather
