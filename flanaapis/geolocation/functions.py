@@ -75,12 +75,16 @@ async def find_places(place_query: str, fast: bool) -> list[Place]:
 
 
 async def find_place_showing_progress(place_query: str) -> AsyncIterator[str | Place | None]:
+    result: str | Place | None = None
     async for result in google_maps.find_place_showing_progress(place_query):
-        if result is None:
-            break
-        yield result
-    else:
-        return
+        match result:
+            case None:
+                break
+            case str(message):
+                yield message
 
-    yield 'Google maps no ha encontrado nada. Buscando en openstreetmap.org...'
-    yield await open_street_map.find_place(place_query)
+    if result:
+        yield await open_street_map.find_place(f'{result.latitude}, {result.longitude}')
+    else:
+        yield 'Google maps no ha encontrado nada. Buscando en openstreetmap.org...'
+        yield await open_street_map.find_place(place_query)
