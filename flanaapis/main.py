@@ -7,19 +7,19 @@ os.environ |= flanautils.find_environment_variables('../.env')
 import sys
 
 import uvicorn
-from fastapi import APIRouter, FastAPI
+from fastapi import FastAPI
 
 import flanaapis.geolocation.routes
 import flanaapis.scraping.routes
 import flanaapis.weather.routes
 
-main_router = APIRouter(prefix='/flanaapis')
-main_router.include_router(flanaapis.geolocation.routes.router)
-main_router.include_router(flanaapis.scraping.routes.router)
-main_router.include_router(flanaapis.weather.routes.router)
+sub_app = FastAPI()
+sub_app.include_router(flanaapis.geolocation.routes.router)
+sub_app.include_router(flanaapis.scraping.routes.router)
+sub_app.include_router(flanaapis.weather.routes.router)
 
 app = FastAPI()
-app.include_router(main_router)
+app.mount('/flanaapis', sub_app)
 
 if __name__ == '__main__':
     try:
