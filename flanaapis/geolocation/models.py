@@ -46,7 +46,7 @@ class Place(FlanaBase):
 
     @property
     def name(self):
-        address_parts = [address_part for address_part in (self.city, self.county, self.state, self.country) if address_part]
+        address_parts = [address_part[:10] for address_part in (self.city, self.county, self.state, self.country) if address_part]
         return ', '.join(address_parts) if address_parts else self._name
 
     def distance_to(self, place: Place) -> float:
