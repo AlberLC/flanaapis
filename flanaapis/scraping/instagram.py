@@ -96,7 +96,7 @@ def select_content_urls(media_urls: list[str]) -> OrderedSet[Media]:
     was_last_image = False
     final_urls = []
     for media_url in media_urls:
-        if not re.findall(r'e35/\d+', media_url) and '.mp4?efg' not in media_url:
+        if not re.findall(r'e35/\d+', media_url) and '.jpg?stp=dst-jpg_e35&' not in media_url and '.mp4?efg' not in media_url:
             continue
 
         if '.jpg?' in media_url:
