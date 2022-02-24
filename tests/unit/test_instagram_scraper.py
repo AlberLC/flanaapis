@@ -21,35 +21,28 @@ class TestInstagramScraper(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(Source.INSTAGRAM, media.source)
 
     async def test_empty(self):
-        medias = await instagram.get_medias('https://www.instagram.com/p/CRjFIK6F9PU/')
-        media = medias[0]
-
-        self.assertEqual(Media(type_=MediaType.ERROR, source=Source.INSTAGRAM), media)
+        medias = await instagram.get_medias('https://www.instagram.com/p/CRjFIK6F9PU/')  # empty
+        self.assertEqual(Media(type_=MediaType.ERROR, source=Source.INSTAGRAM), medias[0])
 
     async def test_one_media(self):
         with self.subTest('image_1'):
-            await self._test_one_media('https://www.instagram.com/p/CRluCdOBmNY/', MediaType.IMAGE)
+            await self._test_one_media('https://www.instagram.com/p/CRluCdOBmNY/', MediaType.IMAGE)  # phoenix valorant
         with self.subTest('image_2'):
-            await self._test_one_media('https://www.instagram.com/p/CRg1KACFvsE/', MediaType.IMAGE)
+            await self._test_one_media('https://www.instagram.com/p/CRg1KACFvsE/', MediaType.IMAGE)  # meme skins valorant money
         with self.subTest('image_3'):
-            await self._test_one_media('https://www.instagram.com/p/CRUWyBvM4qq/', MediaType.IMAGE)
-
-        with self.subTest('image_1'):
-            await self._test_one_media('https://www.instagram.com/p/CRluCdOBmNY/', MediaType.IMAGE)
-        with self.subTest('image_2'):
-            await self._test_one_media('https://www.instagram.com/p/CRg1KACFvsE/', MediaType.IMAGE)
-        with self.subTest('image_3'):
-            await self._test_one_media('https://www.instagram.com/p/CRUWyBvM4qq/', MediaType.IMAGE)
+            await self._test_one_media('https://www.instagram.com/p/CRUWyBvM4qq/', MediaType.IMAGE)  # latina girl with braids
 
         with self.subTest('video_1'):
-            await self._test_one_media('https://www.instagram.com/p/CRgotu_I4tt/', MediaType.VIDEO)
+            await self._test_one_media('https://www.instagram.com/p/CRgotu_I4tt/', MediaType.VIDEO)  # valorant video dance
         with self.subTest('video_2'):
-            await self._test_one_media('https://www.instagram.com/p/CZQAs7cINzZ/', MediaType.VIDEO)
+            await self._test_one_media('https://www.instagram.com/p/CZQAs7cINzZ/', MediaType.VIDEO)  # girl video party
         with self.subTest('video_without_sound'):
-            await self._test_one_media('https://www.instagram.com/p/CRgiVOEIjZ-/', MediaType.VIDEO)
+            await self._test_one_media('https://www.instagram.com/p/CRgiVOEIjZ-/', MediaType.VIDEO)  # sage without sound
+        with self.subTest('long_video'):
+            await self._test_one_media('https://www.instagram.com/p/CZcTl1BBKA0/?hl=es', MediaType.VIDEO)  # long video skater girl
 
     async def test_video_album(self):
-        medias = await instagram.get_medias('https://www.instagram.com/p/CRjl72oFdmV/')
+        medias = await instagram.get_medias('https://www.instagram.com/p/CRjl72oFdmV/')  # 2 valorant skins video
 
         self.assertEqual(2, len(medias))
         self.assertIsNotNone(medias[0].url)
@@ -60,7 +53,7 @@ class TestInstagramScraper(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(Source.INSTAGRAM, medias[1].source)
 
     async def test_images_and_videos(self):
-        medias = await instagram.get_medias('https://www.instagram.com/p/CSE1EpAn7NT/')
+        medias = await instagram.get_medias('https://www.instagram.com/p/CSE1EpAn7NT/')  # 4 images and 1 video of girl
 
         self.assertEqual(5, len(medias))
         self.assertIsNotNone(medias[0].url)
