@@ -38,8 +38,10 @@ class TestInstagramScraper(unittest.IsolatedAsyncioTestCase):
             await self._test_one_media('https://www.instagram.com/p/CZQAs7cINzZ/', MediaType.VIDEO)  # girl video party
         with self.subTest('video_without_sound'):
             await self._test_one_media('https://www.instagram.com/p/CRgiVOEIjZ-/', MediaType.VIDEO)  # sage without sound
-        with self.subTest('long_video'):
+        with self.subTest('long_video_1'):
             await self._test_one_media('https://www.instagram.com/p/CZcTl1BBKA0/?hl=es', MediaType.VIDEO)  # long video skater girl
+        with self.subTest('long_video_2'):
+            await self._test_one_media('https://www.instagram.com/tv/CbLGc7vlCY_/?utm_medium=share_sheet', MediaType.VIDEO)  # long video cateto bocadillo
 
     async def test_video_album(self):
         medias = await instagram.get_medias('https://www.instagram.com/p/CRjl72oFdmV/')  # 2 valorant skins video

@@ -15,7 +15,7 @@ INSTAGRAM_USER_AGENT = 'Instagram 123.0.0.21.114 (iPhone; CPU iPhone OS 11_4 lik
 INSTAGRAM_CONTENT_PATH = 'p/'
 
 cookies = None
-
+'https://www.instagram.com/tv/CbLGc7vlCY_/?utm_medium=share_sheet'
 
 def find_instagram_ids(text: str) -> OrderedSet[str]:
     return OrderedSet(re.findall(r'/(?:p|reel|tv)/(.{11})', text))
@@ -94,17 +94,17 @@ def make_instagram_urls(codes: Iterable[str]) -> list[str]:
 
 def select_content_urls(media_urls: list[str]) -> OrderedSet[Media]:
     was_last_image = False
-    final_urls = []
+    final_urls = OrderedSet()
     for media_url in media_urls:
-        if '.jpg?stp=dst-jpg_e35&' not in media_url and '.mp4?efg' not in media_url and not re.findall(r'e35/\d+', media_url):
+        if not re.findall(r'\.jpg\?stp=dst-jpg_e[13]5&.+cache', media_url) and '.mp4?efg' not in media_url and not re.findall(r'e35/\d+', media_url):
             continue
 
         if '.jpg?' in media_url:
             was_last_image = True
-            final_urls.append(media_url)
+            final_urls.add(media_url)
         elif was_last_image:
             was_last_image = False
             final_urls.pop()
-            final_urls.append(media_url)
+            final_urls.add(media_url)
 
     return OrderedSet(Media(final_url, MediaType.IMAGE if '.jpg?' in final_url else MediaType.VIDEO, Source.INSTAGRAM) for final_url in final_urls)
