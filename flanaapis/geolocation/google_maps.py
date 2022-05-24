@@ -14,7 +14,9 @@ async def find_place(place_query: str) -> Place | None:
             try:
                 page: playwright.async_api.Page = await browser.new_page()
                 await page.goto(f"https://www.google.es/maps/search/{'+'.join(place_query.split())}")
-                await page.click("'Acepto'")
+                button = page.locator("'Acepto'")
+                if await button.count():
+                    await button.click()
                 while '@' not in page.url:
                     await page.wait_for_event('framenavigated')
 
@@ -42,8 +44,10 @@ async def find_place_showing_progress(place_query: str) -> AsyncIterable[str | P
                 page: playwright.async_api.Page = await browser.new_page()
                 yield 'Dirigiéndome a google.es/maps...'
                 await page.goto(f"https://www.google.es/maps/search/{'+'.join(place_query.split())}")
-                yield 'Aceptando consentimiento de privacidad...'
-                await page.click("'Acepto'")
+                button = page.locator("'Acepto'")
+                if await button.count():
+                    yield 'Aceptando consentimiento de privacidad...'
+                    await button.click()
                 yield 'Rebuscando coordenadas en la página...'
                 while '@' not in page.url:
                     await page.wait_for_event('framenavigated')
