@@ -11,14 +11,14 @@ from scraping import instagram
 
 
 class TestInstagramScraper(unittest.IsolatedAsyncioTestCase):
-    async def _test_one_media(self, url: str, type_: MediaType):
+    async def _test_one_media(self, url: str, type_: MediaType, source: Source = Source.INSTAGRAM):
         medias = await instagram.get_medias(url)
         media = medias[0]
 
         self.assertEqual(1, len(medias))
         self.assertIsNotNone(media.url)
         self.assertEqual(type_, media.type_)
-        self.assertEqual(Source.INSTAGRAM, media.source)
+        self.assertEqual(source, media.source)
 
     async def test_empty(self):
         medias = await instagram.get_medias('https://www.instagram.com/p/CRjFIK6F9PU/')  # empty
@@ -43,16 +43,25 @@ class TestInstagramScraper(unittest.IsolatedAsyncioTestCase):
         with self.subTest('long_video_2'):
             await self._test_one_media('https://www.instagram.com/tv/CbLGc7vlCY_/?utm_medium=share_sheet', MediaType.VIDEO)  # long video cateto bocadillo
 
+    async def test_image_album(self):
+        medias = await instagram.get_medias('https://www.instagram.com/p/Cc0fVxnKAJVMmZ3Xm9Mcw_DiefDvvnoVx9vIok0/')  # girl images
+
+        n_medias = 6
+        self.assertEqual(n_medias, len(medias))
+        for i in range(n_medias):
+            self.assertIsNotNone(medias[i].url)
+            self.assertEqual(MediaType.IMAGE, medias[i].type_)
+            self.assertEqual(Source.INSTAGRAM, medias[i].source)
+
     async def test_video_album(self):
         medias = await instagram.get_medias('https://www.instagram.com/p/CRjl72oFdmV/')  # 2 valorant skins video
 
-        self.assertEqual(2, len(medias))
-        self.assertIsNotNone(medias[0].url)
-        self.assertEqual(MediaType.VIDEO, medias[0].type_)
-        self.assertEqual(Source.INSTAGRAM, medias[0].source)
-        self.assertIsNotNone(medias[1].url)
-        self.assertEqual(MediaType.VIDEO, medias[1].type_)
-        self.assertEqual(Source.INSTAGRAM, medias[1].source)
+        n_medias = 2
+        self.assertEqual(n_medias, len(medias))
+        for i in range(n_medias):
+            self.assertIsNotNone(medias[i].url)
+            self.assertEqual(MediaType.VIDEO, medias[i].type_)
+            self.assertEqual(Source.INSTAGRAM, medias[i].source)
 
     async def test_images_and_videos(self):
         medias = await instagram.get_medias('https://www.instagram.com/p/CSE1EpAn7NT/')  # 4 images and 1 video of girl
