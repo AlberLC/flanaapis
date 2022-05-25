@@ -7,6 +7,7 @@ from TikTokApi import TikTokApi
 from flanautils import Media, MediaType, OrderedSet, Source
 
 from flanaapis.exceptions import TikTokMediaNotFoundError
+from flanaapis.scraping import constans
 
 
 def find_download_urls(text: str) -> list[str]:
@@ -21,7 +22,7 @@ def find_tiktok_ids(text: str) -> OrderedSet[str]:
 async def find_tiktok_ids_by_mobile_urls(text: str) -> OrderedSet[str]:
     mobile_ids = re.findall(r'vm\.tiktok\.com/(\w+)', text)
     mobile_tiktok_urls = [f'https://vm.tiktok.com/{mobile_id}/' for mobile_id in mobile_ids]
-    tiktok_urls_gen = [str((await flanautils.get_request(mobile_tiktok_url, return_response=True)).url) for mobile_tiktok_url in mobile_tiktok_urls]
+    tiktok_urls_gen = [str((await flanautils.get_request(mobile_tiktok_url, headers={'User-Agent': constans.USER_AGENT}, return_response=True)).url) for mobile_tiktok_url in mobile_tiktok_urls]
     return find_tiktok_ids(''.join(tiktok_urls_gen))
 
 

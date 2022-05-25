@@ -7,10 +7,10 @@ import flanautils
 from flanautils import Media, MediaType, OrderedSet, Source
 
 from flanaapis.exceptions import InstagramLoginError, InstagramMediaNotFoundError, ResponseError
+from flanaapis.scraping import constans
 
 INSTAGRAM_BASE_URL = 'https://www.instagram.com/'
 INSTAGRAM_LOGIN_URL = INSTAGRAM_BASE_URL + 'accounts/login/ajax/'
-INSTAGRAM_USER_AGENT = 'Instagram 123.0.0.21.114 (iPhone; CPU iPhone OS 11_4 like Mac OS X; en_US; en-US; scale=2.00; 750x1334) AppleWebKit/605.1.15'
 # INSTAGRAM_USER_AGENT_2 = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.87 Safari/537.36'
 INSTAGRAM_CONTENT_PATH = 'p/'
 
@@ -61,7 +61,7 @@ async def get_medias(text: str) -> OrderedSet[Media]:
 async def login(session: aiohttp.ClientSession):
     global cookies
 
-    session.headers.update({'user-agent': INSTAGRAM_USER_AGENT})
+    session.headers.update({'user-agent': constans.USER_AGENT})
 
     async with session.get(INSTAGRAM_BASE_URL) as cookie_response:
         session.headers.update({'x-csrftoken': cookie_response.cookies['csrftoken'].value})
