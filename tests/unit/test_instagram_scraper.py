@@ -1,12 +1,14 @@
 import os
 
 import flanautils
-from flanautils import Media, MediaType, Source
 
 os.environ |= flanautils.find_environment_variables('../.env')
 
 import unittest
 
+from flanautils import MediaType, Source
+
+from flanaapis import InstagramMediaNotFoundError
 from scraping import instagram
 
 
@@ -21,8 +23,8 @@ class TestInstagramScraper(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(source, media.source)
 
     async def test_empty(self):
-        medias = await instagram.get_medias('https://www.instagram.com/p/CRjFIK6F9PU/')  # empty
-        self.assertEqual(Media(type_=MediaType.ERROR, source=Source.INSTAGRAM), medias[0])
+        with self.assertRaises(InstagramMediaNotFoundError):
+            await instagram.get_medias('https://www.instagram.com/p/CRjFIK6F9PU/')  # empty
 
     async def test_one_media(self):
         with self.subTest('image_1'):

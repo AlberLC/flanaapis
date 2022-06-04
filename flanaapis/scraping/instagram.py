@@ -1,17 +1,16 @@
-import os
+import html
 import re
 from typing import Iterable
 
-import aiohttp
-import flanautils
+import playwright
+import playwright.async_api
 from flanautils import Media, MediaType, OrderedSet, Source
 
-from flanaapis.exceptions import InstagramLoginError, InstagramMediaNotFoundError, ResponseError
+from flanaapis.exceptions import InstagramMediaNotFoundError
 from flanaapis.scraping import constans
 
 INSTAGRAM_BASE_URL = 'https://www.instagram.com/'
 INSTAGRAM_LOGIN_URL = INSTAGRAM_BASE_URL + 'accounts/login/ajax/'
-# INSTAGRAM_USER_AGENT_2 = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.87 Safari/537.36'
 INSTAGRAM_CONTENT_PATH = 'p/'
 
 cookies = None
@@ -29,28 +28,37 @@ def find_media_mark(text: str) -> str:
 
 
 def find_media_urls(text: str) -> list[str]:
-    return re.findall(r'https.*?sid=\w{6}', text)
+    return re.findall(r'https(?:(?!https).)*?sid=\w{6}', text)
 
 
 async def get_medias(text: str) -> OrderedSet[Media]:
+    global cookies
+
     medias: OrderedSet[Media] = OrderedSet()
 
     if not (instagram_urls := make_instagram_urls(find_instagram_ids(text))):
         return medias
 
-    async with aiohttp.ClientSession() as session:
-        if not cookies:
-            await login(session)
+    async with playwright.async_api.async_playwright() as p:
+        async with await p.chromium.launch() as browser:
+            context = await browser.new_context(user_agent=constans.USER_AGENT_2, locale='es-ES')
+            page: playwright.async_api.Page = await context.new_page()
 
-        session._cookie_jar = cookies
-
-        for instagram_url in instagram_urls:
-            try:
-                html = await flanautils.get_request(instagram_url, session=session)
-            except ResponseError:
-                medias.add(Media(type_=MediaType.ERROR, source=Source.INSTAGRAM))
+            if cookies:
+                await context.add_cookies(cookies)
             else:
-                medias.update(select_content_urls(find_media_urls(html)))
+                await login(page)
+                cookies = await context.cookies()
+
+            for instagram_url in instagram_urls:
+                await page.goto(instagram_url)
+                await page.wait_for_load_state('networkidle')
+                button = page.locator('button[aria-label=Siguiente]')
+                while await button.count():
+                    await button.click()
+                await page.wait_for_load_state('networkidle')
+                html_content = html.unescape(await page.content())
+                medias |= select_content_urls(find_media_urls(html_content))
 
     if not medias:
         raise InstagramMediaNotFoundError
@@ -58,27 +66,22 @@ async def get_medias(text: str) -> OrderedSet[Media]:
     return medias
 
 
-async def login(session: aiohttp.ClientSession):
-    global cookies
-
-    session.headers.update({'user-agent': constans.USER_AGENT})
-
-    async with session.get(INSTAGRAM_BASE_URL) as cookie_response:
-        session.headers.update({'x-csrftoken': cookie_response.cookies['csrftoken'].value})
-
-    async with session.post(
-            INSTAGRAM_LOGIN_URL,
-            data={'username': os.environ['INSTAGRAM_USERNAME'],
-                  'password': os.environ['INSTAGRAM_PASSWORD']}
-    ) as login_response:
-        try:
-            data = await login_response.json()
-        except aiohttp.ContentTypeError:
-            raise InstagramLoginError(f'{login_response.status}: {login_response.reason}.')
-        if not data.get('authenticated'):
-            raise InstagramLoginError(f"{login_response.status}: {login_response.reason}. {data['message']}")
-
-    cookies = session.cookie_jar
+async def login(page: playwright.async_api.Page):
+    await page.goto('https://www.instagram.com/')
+    button = page.locator("'Permitir cookies necesarias y opcionales'")
+    if await button.count():
+        await button.click()
+    await page.fill('input[name=username]', 'flanagan0125')
+    await page.fill('input[name=password]', '0125210')
+    await page.click("'Entrar'")
+    await page.wait_for_load_state('networkidle')
+    button = page.locator("'Guardar información'")
+    if await button.count():
+        await button.click()
+    await page.wait_for_load_state('networkidle')
+    button = page.locator("'Ahora no'")
+    if await button.count():
+        await button.click()
 
 
 def make_instagram_urls(codes: Iterable[str]) -> list[str]:
@@ -86,19 +89,20 @@ def make_instagram_urls(codes: Iterable[str]) -> list[str]:
 
 
 def select_content_urls(media_urls: list[str]) -> OrderedSet[Media]:
-    was_last_image = False
+    last_url = ''
     final_urls = OrderedSet()
+    thumbnail_urls = OrderedSet()
     for media_url in media_urls:
-        if not re.findall(r'\.(?:jpg|webp)\?stp=dst-jpg_e[13]5&.+cache', media_url) and '.mp4?efg' not in media_url and not re.findall(r'e35/\d+', media_url):
+        if not re.findall(r'e0&cb.*cache', media_url) and '.mp4?efg' not in media_url:
+            last_url = ''
             continue
 
-        if '.mp4?' in media_url:
-            if was_last_image:
-                was_last_image = False
-                final_urls.pop()
-                final_urls.add(media_url)
-        else:
-            was_last_image = True
-            final_urls.add(media_url)
+        if '.mp4?' in media_url and 'jpg' in last_url:
+            thumbnail_urls.add(last_url)
+        final_urls.add(media_url)
+
+        last_url = media_url
+
+    final_urls -= thumbnail_urls
 
     return OrderedSet(Media(final_url, MediaType.VIDEO if '.mp4?' in final_url else MediaType.IMAGE, Source.INSTAGRAM) for final_url in final_urls)
