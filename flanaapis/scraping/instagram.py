@@ -74,7 +74,7 @@ async def get_medias(text: str) -> OrderedSet[Media]:
 
 
 async def login(page: playwright.async_api.Page):
-    await page.goto('https://www.instagram.com/')
+    await page.goto(INSTAGRAM_BASE_URL)
     button = page.locator("'Permitir cookies necesarias y opcionales'")
     if await button.count():
         await button.click()
