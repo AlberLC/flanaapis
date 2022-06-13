@@ -60,7 +60,12 @@ async def get_medias(text: str) -> OrderedSet[Media]:
                     await button.click()
                 await page.wait_for_load_state('networkidle')
                 html_content = html.unescape(await page.content())
-                medias |= select_content_urls(find_media_urls(html_content))
+
+                new_medias = select_content_urls(find_media_urls(html_content))
+                for media in new_medias:
+                    response = await context.request.fetch(media.url)
+                    media.bytes_ = await response.body()
+                medias |= new_medias
 
     if not medias:
         raise InstagramMediaNotFoundError

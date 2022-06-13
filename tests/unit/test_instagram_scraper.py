@@ -66,7 +66,7 @@ class TestInstagramScraper(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(Source.INSTAGRAM, medias[i].source)
 
     async def test_images_and_videos(self):
-        medias = await instagram.get_medias('https://www.instagram.com/p/CSE1EpAn7NT/')  # 4 images and 1 video of girl
+        medias = await instagram.get_medias('https://www.instagram.com/p/CSE1EpAn7NT/')  # 4 images and 1 video of a girl
 
         self.assertEqual(5, len(medias))
         self.assertIsNotNone(medias[0].url)
