@@ -1,7 +1,6 @@
 from typing import overload
 
 import flanautils
-
 from flanaapis.geolocation.models import Place
 
 
@@ -54,8 +53,10 @@ async def find_places(place_query: str) -> list[Place]:
             place.country_code = place_data['address'].get('country_code')
             place.state = place_data['address'].get('state')
             place.state_district = place_data['address'].get('state_district')
+            place.province = place_data['address'].get('province')
             place.county = place_data['address'].get('county')
             place.city = place_data['address'].get('city')
+            place.town = place_data['address'].get('town')
             place.borough = place_data['address'].get('borough')
             place.postcode = place_data['address'].get('postcode')
             place.neighbourhood = place_data['address'].get('neighbourhood')
