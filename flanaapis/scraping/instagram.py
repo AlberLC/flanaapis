@@ -91,8 +91,8 @@ async def login(page: playwright.async_api.Page):
         await button.click()
 
 
-def make_instagram_urls(codes: Iterable[str]) -> list[str]:
-    return [f'{INSTAGRAM_BASE_URL}{INSTAGRAM_CONTENT_PATH}{code}' for code in codes]
+def make_instagram_urls(ids: Iterable[str]) -> list[str]:
+    return [f'{INSTAGRAM_BASE_URL}{INSTAGRAM_CONTENT_PATH}{id}' for id in ids]
 
 
 def select_content_urls(media_urls: list[str]) -> OrderedSet[Media]:
