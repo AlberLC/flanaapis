@@ -44,7 +44,7 @@ def video_bytes(url: str) -> bytes:
     video_stream.download(filename=video_file_name)
     audio_stream.download(filename=audio_file_name)
 
-    subprocess.run(f'ffmpeg -y -i {video_file_name} -i {audio_file_name} -c copy output.mp4', stderr=subprocess.DEVNULL)
+    subprocess.run(['ffmpeg', '-y', '-i', video_file_name, '-i', audio_file_name, '-c', 'copy', 'output.mp4'], stderr=subprocess.DEVNULL)
 
     with open('output.mp4', 'rb') as file:
         video_bytes_ = file.read()
