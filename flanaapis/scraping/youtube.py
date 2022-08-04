@@ -41,8 +41,8 @@ async def video_bytes(url: str) -> bytes:
     audio_mp4_stream = yt.streams.filter(type='audio', subtype='mp4').order_by('bitrate').desc().first()
     audio_stream = audio_mp3_stream if getattr(audio_mp3_stream, 'bitrate', 0) >= getattr(audio_mp4_stream, 'bitrate', 0) else audio_mp4_stream
 
-    video_file_name = f'video.{video_stream.subtype}'
-    audio_file_name = f'audio.{audio_stream.subtype}'
+    video_file_name = f'{id(video_stream)}.{video_stream.subtype}'
+    audio_file_name = f'{id(audio_stream)}.{audio_stream.subtype}'
 
     video_stream.download(filename=video_file_name)
     audio_stream.download(filename=audio_file_name)
