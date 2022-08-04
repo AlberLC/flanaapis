@@ -2,6 +2,7 @@ import asyncio
 import pathlib
 import re
 import subprocess
+import uuid
 from typing import Iterable
 
 import pytube
@@ -41,20 +42,22 @@ async def video_bytes(url: str) -> bytes:
     audio_mp4_stream = yt.streams.filter(type='audio', subtype='mp4').order_by('bitrate').desc().first()
     audio_stream = audio_mp3_stream if getattr(audio_mp3_stream, 'bitrate', 0) >= getattr(audio_mp4_stream, 'bitrate', 0) else audio_mp4_stream
 
-    video_file_name = f'{id(video_stream)}.{video_stream.subtype}'
-    audio_file_name = f'{id(audio_stream)}.{audio_stream.subtype}'
+    random_id = str(uuid.uuid1())
+    video_file_name = f'{random_id}.{video_stream.subtype}'
+    audio_file_name = f'{random_id}.{audio_stream.subtype}'
+    output_file_name = f'{random_id}.mp4'
 
     video_stream.download(filename=video_file_name)
     audio_stream.download(filename=audio_file_name)
 
-    process = await asyncio.create_subprocess_exec('ffmpeg', '-y', '-i', video_file_name, '-i', audio_file_name, '-c', 'copy', 'output.mp4', stderr=subprocess.DEVNULL)
+    process = await asyncio.create_subprocess_exec('ffmpeg', '-y', '-i', video_file_name, '-i', audio_file_name, '-c', 'copy', output_file_name, stderr=subprocess.DEVNULL)
     await process.wait()
 
-    with open('output.mp4', 'rb') as file:
+    with open(output_file_name, 'rb') as file:
         video_bytes_ = file.read()
 
     pathlib.Path(video_file_name).unlink(missing_ok=True)
     pathlib.Path(audio_file_name).unlink(missing_ok=True)
-    pathlib.Path('output.mp4').unlink(missing_ok=True)
+    pathlib.Path(output_file_name).unlink(missing_ok=True)
 
     return video_bytes_
