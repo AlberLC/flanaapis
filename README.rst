@@ -86,7 +86,16 @@ It use Twitter api, doesn't really scrape.
 - Api endpoints:
     - POST https://flanaserver.ddns.net/flanaapis/medias with parameters {"text": "any link/s"}.
 
-2.4) Google weather
+2.4) YouTube
+...........
+
+- Library functions:
+    - :code:`flanaapis.scraping.youtube.get_medias(...)`
+
+- Api endpoints:
+    - POST https://flanaserver.ddns.net/flanaapis/medias with parameters {"text": "any link/s"}.
+
+2.5) Google weather
 ...................
 
 Based on `github.com/lfhohmann/google-weather-scraper`_.
@@ -102,7 +111,7 @@ Based on `github.com/lfhohmann/google-weather-scraper`_.
 3) Weather
 ~~~~~~~~~~
 
-Gets the mean of the data from several sources:
+Gets the waether data mean from several sources:
 
 1. `openweathermap.org`_
 2. `visualcrossing.com`_
