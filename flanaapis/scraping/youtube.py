@@ -12,7 +12,7 @@ YOUTUBE_BASE_URL = 'https://www.youtube.com/watch?v='
 
 
 def find_youtube_ids(text: str) -> OrderedSet[str]:
-    return OrderedSet(re.findall(r'(?:v=|shorts/)(\w+)', text))
+    return OrderedSet(re.findall(r'(?:v=|\.be/|shorts/)([\w-]+)', text))
 
 
 def make_youtube_urls(ids: Iterable[str]) -> list[str]:
