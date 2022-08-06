@@ -26,4 +26,4 @@ class TwitterMediaNotFoundError(MediaNotFoundError):
 
 
 class YouTubeMediaNotFoundError(MediaNotFoundError):
-    source = 'Youtube'
+    source = 'YouTube'
