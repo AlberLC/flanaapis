@@ -87,7 +87,7 @@ It use Twitter api, doesn't really scrape.
     - POST https://flanaserver.ddns.net/flanaapis/medias with parameters {"text": "any link/s"}.
 
 2.4) YouTube
-...........
+............
 
 - Library functions:
     - :code:`flanaapis.scraping.youtube.get_medias(...)`
