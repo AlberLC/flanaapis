@@ -45,7 +45,7 @@ def get_media_dict_by_id(tiktok_id: str) -> dict:
         song_data['album']
     ) if song_data else None
 
-    return Media(download_url, MediaType.VIDEO, Source.TIKTOK, song_info=song_info).to_dict()
+    return Media(download_url, api.get_video_by_download_url(download_url), MediaType.VIDEO, Source.TIKTOK, song_info=song_info).to_dict()
 
 
 async def get_medias(tiktok_ids: Iterable[str], download_urls: Iterable[str] = ()) -> OrderedSet[Media]:
