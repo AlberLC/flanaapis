@@ -18,7 +18,7 @@ cookies = None
 
 
 def find_instagram_ids(text: str) -> OrderedSet[str]:
-    return OrderedSet(re.findall(r'/(?:p|reel|tv)/(.{11})', text))
+    return OrderedSet(re.findall(r'gram\.com/.+?/(.{11})', text))
 
 
 def find_media_mark(text: str) -> str:
@@ -32,12 +32,14 @@ def find_media_urls(text: str) -> list[str]:
     return re.findall(r'https(?:(?!https).)*?sid=\w{6}', text)
 
 
-async def get_medias(text: str) -> OrderedSet[Media]:
+async def get_medias(instagram_ids: Iterable[str]) -> OrderedSet[Media]:
     global cookies
+
+    instagram_ids = OrderedSet(instagram_ids)
 
     medias: OrderedSet[Media] = OrderedSet()
 
-    if not (instagram_urls := make_instagram_urls(find_instagram_ids(text))):
+    if not (instagram_urls := make_instagram_urls(instagram_ids)):
         return medias
 
     async with playwright.async_api.async_playwright() as p:

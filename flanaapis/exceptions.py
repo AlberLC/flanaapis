@@ -23,3 +23,7 @@ class TikTokMediaNotFoundError(MediaNotFoundError):
 
 class TwitterMediaNotFoundError(MediaNotFoundError):
     source = 'Twitter'
+
+
+class YouTubeMediaNotFoundError(MediaNotFoundError):
+    source = 'Youtube'

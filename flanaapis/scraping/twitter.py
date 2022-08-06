@@ -50,10 +50,11 @@ def get_all_medias_from_tweet(tweet_medias_data: dict) -> OrderedSet[Media]:
     return tweet_medias
 
 
-async def get_medias(text: str) -> OrderedSet[Media]:
+async def get_medias(tweet_ids: Iterable[str]) -> OrderedSet[Media]:
+    tweet_ids = OrderedSet(tweet_ids)
+
     medias: OrderedSet[Media] = OrderedSet()
 
-    tweet_ids = find_tweet_ids(text)
     while referenced_tweet_ids := find_tweet_ids(await get_referenced_tweets(tweet_ids)) - tweet_ids:
         tweet_ids |= referenced_tweet_ids
     if not tweet_ids:

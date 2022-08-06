@@ -8,28 +8,38 @@ from typing import Iterable
 import pytube
 from flanautils import Media, MediaType, OrderedSet, Source
 
+from flanaapis.exceptions import YouTubeMediaNotFoundError
+
 YOUTUBE_BASE_URL = 'https://www.youtube.com/watch?v='
 
 
 def find_youtube_ids(text: str) -> OrderedSet[str]:
-    return OrderedSet(re.findall(r'(?:v=|\.be/|shorts/)([\w-]+)', text))
+    # https://www.youtube.com/watch?v=xTYy_CaN0Us
+    # https://youtu.be/hrTKAuD-ulc
+    # https://youtube.com/shorts/L0cK0VPC3jQ?feature=share
+    return OrderedSet(re.findall(r'(?:tube\.com/.+?[=/]|tu\.be/)([\w-]+)', text))
 
 
 def make_youtube_urls(ids: Iterable[str]) -> list[str]:
     return [f'{YOUTUBE_BASE_URL}{id}' for id in ids]
 
 
-async def get_medias(text: str) -> OrderedSet[Media]:
+async def get_medias(youtube_ids: Iterable[str]) -> OrderedSet[Media]:
+    youtube_ids = OrderedSet(youtube_ids)
+
     medias: OrderedSet[Media] = OrderedSet()
 
-    if not (youtube_urls := make_youtube_urls(find_youtube_ids(text))):
+    if not (youtube_urls := make_youtube_urls(youtube_ids)):
         return medias
 
     for youtube_url in youtube_urls:
         try:
             medias.add(Media(await video_bytes(youtube_url), MediaType.VIDEO, Source.YOUTUBE))
         except ValueError:
-            medias.add(Media(type_=MediaType.ERROR, source=Source.YOUTUBE))
+            pass
+
+    if not medias:
+        raise YouTubeMediaNotFoundError
 
     return medias
 
