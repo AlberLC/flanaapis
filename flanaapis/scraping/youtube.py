@@ -1,4 +1,5 @@
 import asyncio
+import concurrent.futures
 import pathlib
 import re
 import subprocess
@@ -18,14 +19,14 @@ def find_youtube_ids(text: str) -> OrderedSet[str]:
     # https://www.youtube.com/watch?v=xTYy_CaN0Us
     # https://youtu.be/hrTKAuD-ulc
     # https://youtube.com/shorts/L0cK0VPC3jQ?feature=share
-    return OrderedSet(re.findall(r'(?:tube\.com/.+?[=/]|tu\.be/)([\w-]+)', text))
+    return OrderedSet(re.findall(r'(?:tube\.com/(?:watch\?v=|shorts/)|tu\.be/)([\w-]+)', text))
 
 
 def make_youtube_urls(ids: Iterable[str]) -> list[str]:
     return [f'{YOUTUBE_BASE_URL}{id}' for id in ids]
 
 
-async def get_medias(youtube_ids: Iterable[str]) -> OrderedSet[Media]:
+async def get_medias(youtube_ids: Iterable[str], timeout_for_media: int | float = None) -> OrderedSet[Media]:
     youtube_ids = OrderedSet(youtube_ids)
 
     medias: OrderedSet[Media] = OrderedSet()
@@ -33,11 +34,14 @@ async def get_medias(youtube_ids: Iterable[str]) -> OrderedSet[Media]:
     if not (youtube_urls := make_youtube_urls(youtube_ids)):
         return medias
 
-    for youtube_url in youtube_urls:
-        try:
-            medias.add(Media(await video_bytes(youtube_url), MediaType.VIDEO, Source.YOUTUBE))
-        except pytube.exceptions.LiveStreamError:
-            pass
+    with concurrent.futures.ProcessPoolExecutor(max_workers=3) as pool:
+        for youtube_url in youtube_urls:
+            try:
+                bytes_ = await asyncio.wait_for(asyncio.get_running_loop().run_in_executor(pool, video_bytes, youtube_url), timeout_for_media)
+            except (asyncio.TimeoutError, pytube.exceptions.LiveStreamError):
+                pass
+            else:
+                medias.add(Media(bytes_, MediaType.VIDEO, Source.YOUTUBE))
 
     if not medias:
         raise YouTubeMediaNotFoundError
@@ -45,7 +49,7 @@ async def get_medias(youtube_ids: Iterable[str]) -> OrderedSet[Media]:
     return medias
 
 
-async def video_bytes(url: str) -> bytes:
+def video_bytes(url: str) -> bytes:
     yt = pytube.YouTube(url)
 
     video_stream = yt.streams.filter(type='video').order_by('bitrate').order_by('resolution').desc().first()
@@ -60,8 +64,7 @@ async def video_bytes(url: str) -> bytes:
     video_stream.download(filename=video_file_name)
     audio_stream.download(filename=audio_file_name)
 
-    process = await asyncio.create_subprocess_exec('ffmpeg', '-y', '-i', video_file_name, '-i', audio_file_name, '-c', 'copy', output_file_name, stderr=subprocess.DEVNULL)
-    await process.wait()
+    subprocess.run(['ffmpeg', '-y', '-i', video_file_name, '-i', audio_file_name, '-c', 'copy', output_file_name], stderr=subprocess.DEVNULL)
 
     with open(output_file_name, 'rb') as file:
         video_bytes_ = file.read()
