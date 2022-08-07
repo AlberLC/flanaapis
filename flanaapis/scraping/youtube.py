@@ -6,6 +6,7 @@ import uuid
 from typing import Iterable
 
 import pytube
+import pytube.exceptions
 from flanautils import Media, MediaType, OrderedSet, Source
 
 from flanaapis.exceptions import YouTubeMediaNotFoundError
@@ -35,7 +36,7 @@ async def get_medias(youtube_ids: Iterable[str]) -> OrderedSet[Media]:
     for youtube_url in youtube_urls:
         try:
             medias.add(Media(await video_bytes(youtube_url), MediaType.VIDEO, Source.YOUTUBE))
-        except ValueError:
+        except pytube.exceptions.LiveStreamError:
             pass
 
     if not medias:
@@ -47,7 +48,7 @@ async def get_medias(youtube_ids: Iterable[str]) -> OrderedSet[Media]:
 async def video_bytes(url: str) -> bytes:
     yt = pytube.YouTube(url)
 
-    video_stream = yt.streams.filter(type='video').order_by('resolution').order_by('filesize').desc().first()
+    video_stream = yt.streams.filter(type='video').order_by('bitrate').order_by('resolution').desc().first()
     audio_mp3_stream = yt.streams.filter(type='audio', subtype='mp3').order_by('bitrate').desc().first()
     audio_mp4_stream = yt.streams.filter(type='audio', subtype='mp4').order_by('bitrate').desc().first()
     audio_stream = audio_mp3_stream if getattr(audio_mp3_stream, 'bitrate', 0) >= getattr(audio_mp4_stream, 'bitrate', 0) else audio_mp4_stream
