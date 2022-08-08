@@ -1,5 +1,5 @@
 import asyncio
-import concurrent.futures
+import multiprocessing
 import pathlib
 import re
 import subprocess
@@ -13,6 +13,11 @@ from flanautils import Media, MediaType, OrderedSet, Source
 from flanaapis.exceptions import YouTubeMediaNotFoundError
 
 YOUTUBE_BASE_URL = 'https://www.youtube.com/watch?v='
+
+
+def download_multiprocess(video_stream, video_file_name, audio_stream, audio_file_name):
+    video_stream.download(filename=video_file_name)
+    audio_stream.download(filename=audio_file_name)
 
 
 def find_youtube_ids(text: str) -> OrderedSet[str]:
@@ -34,14 +39,13 @@ async def get_medias(youtube_ids: Iterable[str], timeout_for_media: int | float 
     if not (youtube_urls := make_youtube_urls(youtube_ids)):
         return medias
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=3) as pool:
-        for youtube_url in youtube_urls:
-            try:
-                bytes_ = await asyncio.wait_for(asyncio.get_running_loop().run_in_executor(pool, video_bytes, youtube_url), timeout_for_media)
-            except (asyncio.TimeoutError, pytube.exceptions.LiveStreamError):
-                pass
-            else:
-                medias.add(Media(bytes_, MediaType.VIDEO, Source.YOUTUBE))
+    for youtube_url in youtube_urls:
+        try:
+            bytes_ = await video_bytes(youtube_url, timeout_for_media)
+        except (asyncio.TimeoutError, pytube.exceptions.LiveStreamError):
+            pass
+        else:
+            medias.add(Media(bytes_, MediaType.VIDEO, Source.YOUTUBE))
 
     if not medias:
         raise YouTubeMediaNotFoundError
@@ -49,7 +53,12 @@ async def get_medias(youtube_ids: Iterable[str], timeout_for_media: int | float 
     return medias
 
 
-def video_bytes(url: str) -> bytes:
+async def video_bytes(url: str, timeout: int | float = None) -> bytes:
+    async def download_():
+        process.start()
+        while process.is_alive():
+            await asyncio.sleep(1)
+
     yt = pytube.YouTube(url)
 
     video_stream = yt.streams.filter(type='video').order_by('bitrate').order_by('resolution').desc().first()
@@ -61,10 +70,15 @@ def video_bytes(url: str) -> bytes:
     audio_file_name = f'{id(audio_stream)}.{audio_stream.subtype}'
     output_file_name = f'{str(uuid.uuid1())}.mp4'
 
-    video_stream.download(filename=video_file_name)
-    audio_stream.download(filename=audio_file_name)
+    process = multiprocessing.Process(target=download_multiprocess, args=(video_stream, video_file_name, audio_stream, audio_file_name))
+    try:
+        await asyncio.wait_for(download_(), timeout)
+    except asyncio.TimeoutError:
+        process.terminate()
+        raise
 
-    subprocess.run(['ffmpeg', '-y', '-i', video_file_name, '-i', audio_file_name, '-c', 'copy', output_file_name], stderr=subprocess.DEVNULL)
+    process = await asyncio.create_subprocess_exec('ffmpeg', '-y', '-i', video_file_name, '-i', audio_file_name, '-c', 'copy', output_file_name, stderr=subprocess.DEVNULL)
+    await process.wait()
 
     with open(output_file_name, 'rb') as file:
         video_bytes_ = file.read()
