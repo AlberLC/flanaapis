@@ -15,6 +15,16 @@ from flanaapis.exceptions import YouTubeMediaNotFoundError
 YOUTUBE_BASE_URL = 'https://www.youtube.com/watch?v='
 
 
+def audio_url(url: str) -> str:
+    yt = pytube.YouTube(url)
+
+    audio_mp3_stream = yt.streams.filter(type='audio', subtype='mp3').order_by('bitrate').desc().first()
+    audio_mp4_stream = yt.streams.filter(type='audio', subtype='mp4').order_by('bitrate').desc().first()
+    audio_stream = audio_mp3_stream if getattr(audio_mp3_stream, 'bitrate', 0) >= getattr(audio_mp4_stream, 'bitrate', 0) else audio_mp4_stream
+
+    return audio_stream.url
+
+
 def download_multiprocess(video_stream, video_file_name, audio_stream, audio_file_name):
     video_stream.download(filename=video_file_name)
     audio_stream.download(filename=audio_file_name)
@@ -31,7 +41,7 @@ def make_youtube_urls(ids: Iterable[str]) -> list[str]:
     return [f'{YOUTUBE_BASE_URL}{id}' for id in ids]
 
 
-async def get_medias(youtube_ids: Iterable[str], timeout_for_media: int | float = None) -> OrderedSet[Media]:
+async def get_medias(youtube_ids: Iterable[str], timeout_for_media: int | float = None, audio_only=False) -> OrderedSet[Media]:
     youtube_ids = OrderedSet(youtube_ids)
 
     medias: OrderedSet[Media] = OrderedSet()
@@ -41,11 +51,16 @@ async def get_medias(youtube_ids: Iterable[str], timeout_for_media: int | float 
 
     for youtube_url in youtube_urls:
         try:
-            bytes_ = await video_bytes(youtube_url, timeout_for_media)
+            if audio_only:
+                content = audio_url(youtube_url)
+                media_type = MediaType.AUDIO
+            else:
+                content = await video_bytes(youtube_url, timeout_for_media)
+                media_type = MediaType.VIDEO
         except (asyncio.TimeoutError, pytube.exceptions.LiveStreamError):
             pass
         else:
-            medias.add(Media(bytes_, MediaType.VIDEO, Source.YOUTUBE))
+            medias.add(Media(content, media_type, Source.YOUTUBE))
 
     if not medias:
         raise YouTubeMediaNotFoundError
@@ -54,7 +69,7 @@ async def get_medias(youtube_ids: Iterable[str], timeout_for_media: int | float 
 
 
 async def video_bytes(url: str, timeout: int | float = None) -> bytes:
-    async def download_():
+    async def run_process():
         process.start()
         while process.is_alive():
             await asyncio.sleep(1)
@@ -72,7 +87,7 @@ async def video_bytes(url: str, timeout: int | float = None) -> bytes:
 
     process = multiprocessing.Process(target=download_multiprocess, args=(video_stream, video_file_name, audio_stream, audio_file_name))
     try:
-        await asyncio.wait_for(download_(), timeout)
+        await asyncio.wait_for(run_process(), timeout)
     except asyncio.TimeoutError:
         process.terminate()
         raise
