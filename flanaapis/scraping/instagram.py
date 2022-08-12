@@ -8,7 +8,7 @@ import playwright.async_api
 from flanautils import Media, MediaType, OrderedSet, Source
 
 from flanaapis.exceptions import InstagramMediaNotFoundError
-from flanaapis.scraping import constans
+from flanaapis.scraping import constants
 
 INSTAGRAM_BASE_URL = 'https://www.instagram.com/'
 INSTAGRAM_LOGIN_URL = INSTAGRAM_BASE_URL + 'accounts/login/ajax/'
@@ -44,7 +44,7 @@ async def get_medias(instagram_ids: Iterable[str]) -> OrderedSet[Media]:
 
     async with playwright.async_api.async_playwright() as p:
         async with await p.chromium.launch() as browser:
-            context = await browser.new_context(user_agent=constans.USER_AGENT_2, locale='es-ES')
+            context = await browser.new_context(user_agent=constants.USER_AGENT_2, locale='es-ES')
             page: playwright.async_api.Page = await context.new_page()
 
             if cookies:
