@@ -6,6 +6,7 @@ import subprocess
 import uuid
 from typing import Iterable
 
+import flanautils
 import pytube
 import pytube.exceptions
 from flanautils import Media, MediaType, OrderedSet, Source
@@ -49,14 +50,10 @@ async def get_media(url: str, audio_only=False, timeout: int | float = None) -> 
     await wait_for_process(multiprocessing.Process(target=download_multiprocess, args=(audio_stream, audio_file_name)))
 
     if audio_only:
-        output_file_name = f'{str(uuid.uuid1())}.mp3'
-        process = await asyncio.create_subprocess_exec('ffmpeg', '-y', '-i', audio_file_name, '-b:a', '192k', '-ar', '44100', '-ac', '2', output_file_name, stderr=subprocess.DEVNULL)
-        await process.wait()
-        with open(output_file_name, 'rb') as file:
+        with open(audio_file_name, 'rb') as file:
             bytes_ = file.read()
         pathlib.Path(audio_file_name).unlink(missing_ok=True)
-        pathlib.Path(output_file_name).unlink(missing_ok=True)
-        return Media(audio_stream.url, bytes_, MediaType.AUDIO, 'mp3', Source.YOUTUBE)
+        return await flanautils.to_mp3(Media(audio_stream.url, bytes_, MediaType.AUDIO, audio_stream.subtype, Source.YOUTUBE))
 
     video_stream = yt.streams.filter(type='video').order_by('bitrate').order_by('resolution').desc().first()
     video_file_name = f'{id(video_stream)}.{video_stream.subtype}'
