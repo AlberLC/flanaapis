@@ -25,7 +25,7 @@ def get_all_medias_from_tweet(tweet_medias_data: dict) -> OrderedSet[Media]:
     tweet_medias = OrderedSet()
     for tweet_media_data in tweet_medias_data:
         if tweet_media_data['type'] == 'photo':
-            tweet_medias.add(Media(tweet_media_data['media_url_https'], MediaType.IMAGE, Source.TWITTER))
+            tweet_medias.add(Media(tweet_media_data['media_url_https'], MediaType.IMAGE, 'jpg', Source.TWITTER))
             continue
 
         try:
@@ -45,12 +45,18 @@ def get_all_medias_from_tweet(tweet_medias_data: dict) -> OrderedSet[Media]:
                 max_bitrate = bitrate
                 max_bitrate_url = variant['url']
 
-        tweet_medias.add(Media(max_bitrate_url, MediaType.VIDEO if tweet_media_data['type'] == 'video' else MediaType.GIF, Source.TWITTER))
+        if tweet_media_data['type'] == 'video':
+            media_type = MediaType.VIDEO
+            extension = 'mp4'
+        else:
+            media_type = MediaType.GIF
+            extension = 'gif'
+        tweet_medias.add(Media(max_bitrate_url, media_type, extension, Source.TWITTER))
 
     return tweet_medias
 
 
-async def get_medias(tweet_ids: Iterable[str]) -> OrderedSet[Media]:
+async def get_medias(tweet_ids: Iterable[str], audio_only=False) -> OrderedSet[Media]:
     tweet_ids = OrderedSet(tweet_ids)
 
     medias: OrderedSet[Media] = OrderedSet()
@@ -75,6 +81,9 @@ async def get_medias(tweet_ids: Iterable[str]) -> OrderedSet[Media]:
 
     if not medias:
         raise TwitterMediaNotFoundError()
+
+    if audio_only:
+        medias = OrderedSet([await flanautils.video_to_audio(media) for media in medias])
 
     return medias
 

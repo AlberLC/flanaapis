@@ -8,7 +8,7 @@ from TikTokApi import TikTokApi
 from flanautils import Media, MediaType, OrderedSet, Source
 
 from flanaapis.exceptions import TikTokMediaNotFoundError
-from flanaapis.scraping import constans
+from flanaapis.scraping import constants
 
 
 def find_download_urls(text: str) -> list[str]:
@@ -19,7 +19,7 @@ def find_download_urls(text: str) -> list[str]:
 async def find_tiktok_ids(text: str) -> OrderedSet[str]:
     mobile_ids = re.findall(r'vm\.tiktok\.com/(\w+)', text)
     mobile_tiktok_urls = [f'https://vm.tiktok.com/{mobile_id}/' for mobile_id in mobile_ids]
-    tiktok_urls = [str((await flanautils.get_request(mobile_tiktok_url, headers={'User-Agent': constans.USER_AGENT}, return_response=True)).url) for mobile_tiktok_url in mobile_tiktok_urls]
+    tiktok_urls = [str((await flanautils.get_request(mobile_tiktok_url, headers={'User-Agent': constants.USER_AGENT}, return_response=True)).url) for mobile_tiktok_url in mobile_tiktok_urls]
     text = f"{text}{''.join(tiktok_urls)}"
 
     return OrderedSet(re.findall(r'v(?:ideo)?/(\d+)', text))
@@ -39,16 +39,17 @@ def get_media_dict_by_id(tiktok_id: str) -> dict:
     song_info = Media(
         song_data['playUrl'],
         MediaType.AUDIO,
+        'mp3',
         Source.TIKTOK,
         song_data['title'],
         song_data['authorName'],
         song_data['album']
     ) if song_data else None
 
-    return Media(download_url, api.get_video_by_download_url(download_url), MediaType.VIDEO, Source.TIKTOK, song_info=song_info).to_dict()
+    return Media(download_url, api.get_video_by_download_url(download_url), MediaType.VIDEO, 'mp4', Source.TIKTOK, song_info=song_info).to_dict()
 
 
-async def get_medias(tiktok_ids: Iterable[str], download_urls: Iterable[str] = ()) -> OrderedSet[Media]:
+async def get_medias(tiktok_ids: Iterable[str], download_urls: Iterable[str] = (), audio_only=False) -> OrderedSet[Media]:
     tiktok_ids = OrderedSet(tiktok_ids)
 
     medias: OrderedSet[Media] = OrderedSet()
@@ -62,9 +63,12 @@ async def get_medias(tiktok_ids: Iterable[str], download_urls: Iterable[str] = (
             medias.add(Media.from_dict(result_dict, lazy=False))
 
     for download_url in download_urls:
-        medias.add(Media(download_url, MediaType.VIDEO, Source.TIKTOK))
+        medias.add(Media(download_url, MediaType.VIDEO, 'mp4', Source.TIKTOK))
 
     if not medias:
         raise TikTokMediaNotFoundError
+
+    if audio_only:
+        medias = OrderedSet([await flanautils.video_to_audio(media) for media in medias])
 
     return medias

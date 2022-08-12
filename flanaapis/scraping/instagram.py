@@ -3,6 +3,7 @@ import os
 import re
 from typing import Iterable
 
+import flanautils
 import playwright
 import playwright.async_api
 from flanautils import Media, MediaType, OrderedSet, Source
@@ -32,7 +33,36 @@ def find_media_urls(text: str) -> list[str]:
     return re.findall(r'https(?:(?!https).)*?sid=\w{6}', text)
 
 
-async def get_medias(instagram_ids: Iterable[str]) -> OrderedSet[Media]:
+def get_content_media(media_urls: list[str]) -> OrderedSet[Media]:
+    last_url = ''
+    final_urls = OrderedSet()
+    thumbnail_urls = OrderedSet()
+    for media_url in media_urls:
+        if not re.findall(r'e0&cb.*cache', media_url) and '.mp4?efg' not in media_url:
+            last_url = ''
+            continue
+
+        if '.mp4?' in media_url and 'jpg' in last_url:
+            thumbnail_urls.add(last_url)
+        final_urls.add(media_url)
+
+        last_url = media_url
+
+    final_urls -= thumbnail_urls
+
+    content_medias = OrderedSet()
+    for final_url in final_urls:
+        if '.mp4?' in final_url:
+            media_type = MediaType.VIDEO
+            extension = 'mp4'
+        else:
+            media_type = MediaType.IMAGE
+            extension = 'jpg'
+        content_medias.add(Media(final_url, media_type, extension, Source.INSTAGRAM))
+    return content_medias
+
+
+async def get_medias(instagram_ids: Iterable[str], audio_only=False) -> OrderedSet[Media]:
     global cookies
 
     instagram_ids = OrderedSet(instagram_ids)
@@ -63,7 +93,7 @@ async def get_medias(instagram_ids: Iterable[str]) -> OrderedSet[Media]:
                 await page.wait_for_load_state('networkidle')
                 html_content = html.unescape(await page.content())
 
-                new_medias = select_content_urls(find_media_urls(html_content))
+                new_medias = get_content_media(find_media_urls(html_content))
                 for media in new_medias:
                     response = await context.request.fetch(media.url)
                     media.bytes_ = await response.body()
@@ -71,6 +101,9 @@ async def get_medias(instagram_ids: Iterable[str]) -> OrderedSet[Media]:
 
     if not medias:
         raise InstagramMediaNotFoundError
+
+    if audio_only:
+        medias = OrderedSet([await flanautils.video_to_audio(media) for media in medias])
 
     return medias
 
@@ -95,23 +128,3 @@ async def login(page: playwright.async_api.Page):
 
 def make_instagram_urls(ids: Iterable[str]) -> list[str]:
     return [f'{INSTAGRAM_BASE_URL}{INSTAGRAM_CONTENT_PATH}{id}' for id in ids]
-
-
-def select_content_urls(media_urls: list[str]) -> OrderedSet[Media]:
-    last_url = ''
-    final_urls = OrderedSet()
-    thumbnail_urls = OrderedSet()
-    for media_url in media_urls:
-        if not re.findall(r'e0&cb.*cache', media_url) and '.mp4?efg' not in media_url:
-            last_url = ''
-            continue
-
-        if '.mp4?' in media_url and 'jpg' in last_url:
-            thumbnail_urls.add(last_url)
-        final_urls.add(media_url)
-
-        last_url = media_url
-
-    final_urls -= thumbnail_urls
-
-    return OrderedSet(Media(final_url, MediaType.VIDEO if '.mp4?' in final_url else MediaType.IMAGE, Source.INSTAGRAM) for final_url in final_urls)
