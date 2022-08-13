@@ -45,7 +45,7 @@ async def get_media(url: str, audio_only=False, timeout: int | float = None) -> 
             raise
 
     yt = pytube.YouTube(url)
-    audio_stream = yt.streams.filter(type='audio').order_by('bitrate').desc().first()
+    audio_stream = yt.streams.filter(type='audio', subtype='mp4').order_by('bitrate').desc().first()
     audio_file_name = f'{id(audio_stream)}.{audio_stream.subtype}'
     await wait_for_process(multiprocessing.Process(target=download_multiprocess, args=(audio_stream, audio_file_name)))
 
