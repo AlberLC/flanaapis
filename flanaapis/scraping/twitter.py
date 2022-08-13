@@ -83,7 +83,7 @@ async def get_medias(tweet_ids: Iterable[str], audio_only=False) -> OrderedSet[M
         raise TwitterMediaNotFoundError()
 
     if audio_only:
-        medias = OrderedSet([await flanautils.video_to_audio(media) for media in medias])
+        medias = OrderedSet([await flanautils.to_mp3(media) for media in medias])
 
     return medias
 
