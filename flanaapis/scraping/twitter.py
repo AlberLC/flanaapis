@@ -84,8 +84,11 @@ async def get_medias(tweet_ids: Iterable[str], audio_only=False) -> OrderedSet[M
 
     if audio_only:
         for media in medias:
+            if not media.content:
+                continue
+
             media.url = None
-            media.bytes_ = await flanautils.to_mp3(media.bytes_)
+            media.bytes_ = await flanautils.to_mp3(media.bytes_ or await flanautils.get_request(media.url))
             media.type_ = MediaType.AUDIO
             media.extension = 'mp3'
 
