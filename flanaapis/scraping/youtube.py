@@ -54,7 +54,7 @@ async def get_media(url: str, audio_only=False, timeout: int | float = None) -> 
             bytes_ = file.read()
         pathlib.Path(audio_file_name).unlink(missing_ok=True)
         return Media(
-            await flanautils.add_metadata(await flanautils.to_mp3(bytes_), {'title': audio_stream.title}, overwrite=False),
+            await flanautils.edit_metadata(await flanautils.to_mp3(bytes_), {'title': audio_stream.title}, overwrite=False),
             MediaType.AUDIO,
             'mp3',
             Source.YOUTUBE,
