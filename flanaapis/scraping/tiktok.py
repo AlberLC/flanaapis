@@ -69,6 +69,10 @@ async def get_medias(tiktok_ids: Iterable[str], download_urls: Iterable[str] = (
         raise TikTokMediaNotFoundError
 
     if audio_only:
-        medias = OrderedSet([await flanautils.to_mp3(media) for media in medias])
+        for media in medias:
+            media.url = None
+            media.bytes_ = await flanautils.to_mp3(media.bytes_)
+            media.type_ = MediaType.AUDIO
+            media.extension = 'mp3'
 
     return medias

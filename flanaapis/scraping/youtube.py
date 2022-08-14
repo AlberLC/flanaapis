@@ -53,14 +53,22 @@ async def get_media(url: str, audio_only=False, timeout: int | float = None) -> 
         with open(audio_file_name, 'rb') as file:
             bytes_ = file.read()
         pathlib.Path(audio_file_name).unlink(missing_ok=True)
-        return await flanautils.to_mp3(Media(audio_stream.url, bytes_, MediaType.AUDIO, audio_stream.subtype, Source.YOUTUBE))
+        return Media(
+            await flanautils.add_metadata(await flanautils.to_mp3(bytes_), {'title': audio_stream.title}, overwrite=False),
+            MediaType.AUDIO,
+            audio_stream.subtype,
+            Source.YOUTUBE
+        )
 
     video_stream = yt.streams.filter(type='video').order_by('bitrate').order_by('resolution').desc().first()
     video_file_name = f'{id(video_stream)}.{video_stream.subtype}'
     output_file_name = f'{str(uuid.uuid1())}.mp4'
     await wait_for_process(multiprocessing.Process(target=download_multiprocess, args=(video_stream, video_file_name)))
 
-    process = await asyncio.create_subprocess_exec('ffmpeg', '-y', '-i', video_file_name, '-i', audio_file_name, '-c', 'copy', output_file_name, stderr=subprocess.DEVNULL)
+    process = await asyncio.create_subprocess_exec(
+        'ffmpeg', '-y', '-i', video_file_name, '-i', audio_file_name, '-c', 'copy', output_file_name,
+        stderr=subprocess.DEVNULL
+    )
     await process.wait()
 
     with open(output_file_name, 'rb') as file:
