@@ -16,6 +16,11 @@ async def filter_audios(medias: Iterable[Media]) -> OrderedSet[Media]:
         except ValueError:
             pass
         else:
-            filtered_medias.add(Media(bytes_, MediaType.AUDIO, 'mp3'))
+            new_media = media.deep_copy()
+            new_media.url = None
+            new_media.bytes_ = bytes_
+            new_media.type_ = MediaType.AUDIO
+            new_media.extension = 'mp3'
+            filtered_medias.add(new_media)
 
     return filtered_medias
