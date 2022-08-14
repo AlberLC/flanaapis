@@ -57,7 +57,8 @@ async def get_media(url: str, audio_only=False, timeout: int | float = None) -> 
             await flanautils.add_metadata(await flanautils.to_mp3(bytes_), {'title': audio_stream.title}, overwrite=False),
             MediaType.AUDIO,
             'mp3',
-            Source.YOUTUBE
+            Source.YOUTUBE,
+            title=audio_stream.title
         )
 
     video_stream = yt.streams.filter(type='video').order_by('bitrate').order_by('resolution').desc().first()
