@@ -8,7 +8,7 @@ from TikTokApi import TikTokApi
 from flanautils import Media, MediaType, OrderedSet, Source
 
 from flanaapis.exceptions import TikTokMediaNotFoundError
-from flanaapis.scraping import constants
+from flanaapis.scraping import constants, functions
 
 
 def find_download_urls(text: str) -> list[str]:
@@ -69,13 +69,6 @@ async def get_medias(tiktok_ids: Iterable[str], download_urls: Iterable[str] = (
         raise TikTokMediaNotFoundError
 
     if audio_only:
-        for media in medias:
-            if not media.content:
-                continue
-
-            media.bytes_ = await flanautils.to_mp3(media.bytes_ or await flanautils.get_request(media.url))
-            media.url = None
-            media.type_ = MediaType.AUDIO
-            media.extension = 'mp3'
+        medias = await functions.filter_audios(medias)
 
     return medias

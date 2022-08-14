@@ -3,13 +3,12 @@ import os
 import re
 from typing import Iterable
 
-import flanautils
 import playwright
 import playwright.async_api
 from flanautils import Media, MediaType, OrderedSet, Source
 
 from flanaapis.exceptions import InstagramMediaNotFoundError
-from flanaapis.scraping import constants
+from flanaapis.scraping import constants, functions
 
 INSTAGRAM_BASE_URL = 'https://www.instagram.com/'
 INSTAGRAM_LOGIN_URL = INSTAGRAM_BASE_URL + 'accounts/login/ajax/'
@@ -103,14 +102,7 @@ async def get_medias(instagram_ids: Iterable[str], audio_only=False) -> OrderedS
         raise InstagramMediaNotFoundError
 
     if audio_only:
-        for media in medias:
-            if not media.content:
-                continue
-
-            media.bytes_ = await flanautils.to_mp3(media.bytes_ or await flanautils.get_request(media.url))
-            media.url = None
-            media.type_ = MediaType.AUDIO
-            media.extension = 'mp3'
+        medias = await functions.filter_audios(medias)
 
     return medias
 

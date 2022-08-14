@@ -7,6 +7,7 @@ import flanautils
 from flanautils import Media, MediaType, OrderedSet, Source, return_if_first_empty
 
 from flanaapis.exceptions import ResponseError, TwitterMediaNotFoundError
+from flanaapis.scraping import functions
 
 TWITTER_ENDPOINT_V1 = 'https://api.twitter.com/1.1/statuses/lookup.json'
 TWITTER_ENDPOINT_V2 = 'https://api.twitter.com/2/tweets'
@@ -83,14 +84,7 @@ async def get_medias(tweet_ids: Iterable[str], audio_only=False) -> OrderedSet[M
         raise TwitterMediaNotFoundError()
 
     if audio_only:
-        for media in medias:
-            if not media.content:
-                continue
-
-            media.bytes_ = await flanautils.to_mp3(media.bytes_ or await flanautils.get_request(media.url))
-            media.url = None
-            media.type_ = MediaType.AUDIO
-            media.extension = 'mp3'
+        medias = await functions.filter_audios(medias)
 
     return medias
 
