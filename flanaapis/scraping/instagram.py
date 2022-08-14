@@ -107,8 +107,8 @@ async def get_medias(instagram_ids: Iterable[str], audio_only=False) -> OrderedS
             if not media.content:
                 continue
 
-            media.url = None
             media.bytes_ = await flanautils.to_mp3(media.bytes_ or await flanautils.get_request(media.url))
+            media.url = None
             media.type_ = MediaType.AUDIO
             media.extension = 'mp3'
 
