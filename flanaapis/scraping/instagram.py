@@ -37,7 +37,15 @@ def get_content_media(media_urls: list[str]) -> OrderedSet[Media]:
     final_urls = OrderedSet()
     thumbnail_urls = OrderedSet()
     for media_url in media_urls:
-        if not re.findall(r'e0&cb.*cache', media_url) and '.mp4?efg' not in media_url:
+        if (
+                not re.findall(r'\.(?:jpg|webp)\?stp=dst-jpg_e[13]5&.+cache', media_url)
+                and
+                not re.findall(r'e0&cb.*cache', media_url)
+                and
+                '.mp4?efg' not in media_url
+                and
+                '.mp4?_nc_ht=' not in media_url
+        ):
             last_url = ''
             continue
 
