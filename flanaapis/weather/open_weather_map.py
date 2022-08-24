@@ -46,9 +46,9 @@ def create_instant_weather_by_data(data: dict, timezone: datetime.timezone) -> I
         for k, v in data['main'].items():
             data[k] = v
         data['clouds'] = sum(data['clouds'].values())
-        data['wind_deg'] = data['wind']['deg']
-        data['wind_gust'] = data['wind']['gust']
-        data['wind_speed'] = data['wind']['speed']
+        data['wind_deg'] = data.get('wind', {}).get('deg')
+        data['wind_gust'] = data.get('wind', {}).get('gust')
+        data['wind_speed'] = data.get('wind', {}).get('speed')
 
         return data
 
