@@ -1,15 +1,13 @@
 import os
-
-import flanautils
-
-os.environ |= flanautils.find_environment_variables('../.env')
-
 import unittest
 
+import flanautils
 from flanautils import MediaType, Source
 
 from flanaapis import InstagramMediaNotFoundError
-from scraping import instagram
+from flanaapis.scraping import instagram
+
+os.environ |= flanautils.find_environment_variables('../.env')
 
 
 class TestInstagramScraper(unittest.IsolatedAsyncioTestCase):

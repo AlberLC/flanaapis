@@ -23,7 +23,6 @@ from flanaapis.weather.models import DayPhases, DayWeather, InstantWeather, Prec
 
 UNITS = 'metric'
 LANGUAGE = 'es'
-API_KEY = os.environ['OPEN_WEATHER_MAP_API_KEY']
 BASE_ENDPOINT = 'https://api.openweathermap.org/data/2.5'
 PAST_ENDPOINT = f'{BASE_ENDPOINT}/onecall/timemachine'
 NEAR_FUTURE_ENDPOINT = f'{BASE_ENDPOINT}/forecast'
@@ -183,7 +182,7 @@ async def get_weather_api_data(latitude: float, longitude: float) -> tuple[list[
         'lon': longitude,
         'units': UNITS,
         'lang': LANGUAGE,
-        'appid': API_KEY
+        'appid': os.environ['OPEN_WEATHER_MAP_API_KEY']
     }
 
     async with aiohttp.ClientSession() as session:

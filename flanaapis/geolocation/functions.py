@@ -7,7 +7,6 @@ from flanaapis.exceptions import PlaceNotFoundError
 from flanaapis.geolocation import google_maps, open_street_map
 from flanaapis.geolocation.models import Place
 
-TIMEZONE_API_KEY = os.environ['TIMEZONEDB_API_KEY']
 TIMEZONE_BASE_ENDPOINT = 'https://api.timezonedb.com/v2.1/get-time-zone'
 
 
@@ -50,7 +49,7 @@ async def find_timezone(latitude: float, longitude: float = None, fast: bool = F
 async def find_timezone(latitude: float | str, longitude: float = None, fast: bool = False) -> dict | None:
     latitude, longitude = await ensure_coordinates(latitude, longitude, fast)
     parameters = {
-        'key': TIMEZONE_API_KEY,
+        'key': os.environ['TIMEZONEDB_API_KEY'],
         'format': 'json',
         'by': 'position',
         'lat': latitude,

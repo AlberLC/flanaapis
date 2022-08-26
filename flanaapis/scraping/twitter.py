@@ -11,8 +11,6 @@ from flanaapis.scraping import functions
 
 TWITTER_ENDPOINT_V1 = 'https://api.twitter.com/1.1/statuses/lookup.json'
 TWITTER_ENDPOINT_V2 = 'https://api.twitter.com/2/tweets'
-BEARER_TOKEN = os.environ['TWITTER_BEARER_TOKEN']
-HEADERS = {'Authorization': f'Bearer {BEARER_TOKEN}'}
 
 
 @return_if_first_empty(OrderedSet)
@@ -113,7 +111,7 @@ async def get_referenced_tweets(tweet_ids: Iterable[str]) -> list[str]:
 
 
 async def get_tweets_data(url: str, params: dict) -> dict:
-    data = await flanautils.get_request(url, params, headers=HEADERS)
+    data = await flanautils.get_request(url, params, headers={'Authorization': f"Bearer {os.environ['TWITTER_BEARER_TOKEN']}"})
     try:
         return data['data']
     except (TypeError, KeyError):

@@ -1,17 +1,15 @@
 import os
-
-import flanautils
-
-os.environ |= flanautils.find_environment_variables('../.env')
-
 import sys
 
+import flanautils
 import uvicorn
 from fastapi import FastAPI
 
 import flanaapis.geolocation.routes
 import flanaapis.scraping.routes
 import flanaapis.weather.routes
+
+os.environ |= flanautils.find_environment_variables('../.env')
 
 sub_app = FastAPI()
 sub_app.include_router(flanaapis.geolocation.routes.router)
