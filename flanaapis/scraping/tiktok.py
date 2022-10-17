@@ -22,7 +22,7 @@ async def find_tiktok_ids(text: str) -> OrderedSet[str]:
     tiktok_urls = [str((await flanautils.get_request(mobile_tiktok_url, headers={'User-Agent': constants.USER_AGENT}, return_response=True)).url) for mobile_tiktok_url in mobile_tiktok_urls]
     text = f"{text}{''.join(tiktok_urls)}"
 
-    return OrderedSet(re.findall(r'v(?:ideo)?/(\d+)', text))
+    return OrderedSet(re.findall(r'tok.*v(?:ideo)?/(\d+)', text))
 
 
 def get_media_dict_by_id(tiktok_id: str) -> dict:
