@@ -67,7 +67,7 @@ async def get_media(url: str, audio_only=False, timeout: int | float = None) -> 
     await wait_for_process(multiprocessing.Process(target=download_multiprocess, args=(video_stream, video_file_name)))
 
     process = await asyncio.create_subprocess_exec(
-        'ffmpeg', '-y', '-i', video_file_name, '-i', audio_file_name, '-c', 'copy', output_file_name,
+        'ffmpeg', '-y', '-i', video_file_name, '-i', audio_file_name, '-c:v', 'libx264', '-b:v', str(video_stream.bitrate), '-c:a', 'copy', output_file_name,
         stderr=subprocess.DEVNULL
     )
     await process.wait()
