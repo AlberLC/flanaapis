@@ -55,8 +55,6 @@ class InstantWeather(MeanBase, FlanaBase):
         for k, v in self_vars.items():
             if isinstance(v, datetime.datetime):
                 self_vars[k] = v.timestamp()
-            elif isinstance(v, datetime.timezone):
-                self_vars[k] = str(v)
 
         return self_vars
 
