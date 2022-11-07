@@ -38,7 +38,7 @@ async def get_day_weathers_by_place(latitude: float | str, longitude: float = No
     # noinspection PyBroadException
     try:
         api_weather_data = google_weather_scraper.get_forecast(str(place))
-    except BaseException:
+    except Exception:
         return None, None
 
     if not timezone:
