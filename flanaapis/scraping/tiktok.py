@@ -37,13 +37,13 @@ def get_media_dict_by_id(tiktok_id: str) -> dict:
         download_url = video_data['downloadAddr']
 
     song_info = Media(
-        song_data['playUrl'],
+        song_data.get('playUrl'),
         MediaType.AUDIO,
         'mp3',
         Source.TIKTOK,
-        song_data['title'],
-        song_data['authorName'],
-        song_data['album']
+        song_data.get('title'),
+        song_data.get('authorName'),
+        song_data.get('album')
     ) if song_data else None
 
     return Media(download_url, api.get_video_by_download_url(download_url), MediaType.VIDEO, 'mp4', Source.TIKTOK, song_info=song_info).to_dict()
@@ -60,7 +60,10 @@ async def get_medias(tiktok_ids: Iterable[str], download_urls: Iterable[str] = (
     with concurrent.futures.ProcessPoolExecutor(max_workers=3) as pool:
         for tiktok_id in tiktok_ids:
             result_dict = await asyncio.get_running_loop().run_in_executor(pool, get_media_dict_by_id, tiktok_id)
-            medias.add(Media.from_dict(result_dict, lazy=False))
+            try:
+                result_dict['bytes_'].decode()
+            except UnicodeDecodeError:
+                medias.add(Media.from_dict(result_dict, lazy=False))
 
     for download_url in download_urls:
         medias.add(Media(download_url, MediaType.VIDEO, 'mp4', Source.TIKTOK))
