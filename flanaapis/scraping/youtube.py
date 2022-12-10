@@ -24,7 +24,8 @@ def find_youtube_ids(text: str) -> OrderedSet[str]:
     # https://www.youtube.com/watch?v=xTYy_CaN0Us
     # https://youtu.be/hrTKAuD-ulc
     # https://youtube.com/shorts/L0cK0VPC3jQ?feature=share
-    return OrderedSet(re.findall(r'(?:tube\.com/(?:watch\?v=|shorts/)|tu\.be/)([\w-]+)', text))
+    # https://www.youtube.com/embed/yntdjlWyH9Y?feature=oembed&enablejsapi=1%5C
+    return OrderedSet(re.findall(r'(?:tube\.com/(?:watch\?v=|shorts/|embed/)|tu\.be/)([\w-]+)', text))
 
 
 def make_youtube_urls(ids: Iterable[str]) -> list[str]:
