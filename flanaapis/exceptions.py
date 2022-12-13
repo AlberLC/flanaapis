@@ -17,6 +17,10 @@ class InstagramMediaNotFoundError(MediaNotFoundError):
     source = 'Instagram'
 
 
+class RedditMediaNotFoundError(MediaNotFoundError):
+    source = 'Reddit'
+
+
 class TikTokMediaNotFoundError(MediaNotFoundError):
     source = 'TikTok'
 
