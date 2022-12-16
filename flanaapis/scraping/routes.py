@@ -50,8 +50,8 @@ class MediaOutput(BaseModel):
 @router.post('/', response_model=list[MediaOutput], response_model_exclude_defaults=True, response_model_exclude_unset=True)
 async def get_medias(input_: Input):
     return [media_to_dict(media) for media in (
-        *await twitter.get_medias(twitter.find_tweet_ids(input_.text)),
-        *await instagram.get_medias(instagram.find_instagram_ids(input_.text)),
-        *await tiktok.get_medias(await tiktok.find_tiktok_ids(input_.text), tiktok.find_download_urls(input_.text)),
+        *await twitter.get_medias(twitter.find_ids(input_.text)),
+        *await instagram.get_medias(instagram.find_ids(input_.text)),
+        *await tiktok.get_medias(await tiktok.find_ids(input_.text), tiktok.find_download_urls(input_.text)),
         *await youtube.get_medias(youtube.find_youtube_ids(input_.text))
     )]

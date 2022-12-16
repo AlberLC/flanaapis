@@ -14,7 +14,7 @@ INSTAGRAM_LOGIN_URL = INSTAGRAM_BASE_URL + 'accounts/login/ajax/'
 INSTAGRAM_CONTENT_PATH = 'p/'
 
 
-def find_instagram_ids(text: str) -> OrderedSet[str]:
+def find_ids(text: str) -> OrderedSet[str]:
     return OrderedSet(re.findall(r'gram\.com/.+?/(.{11})', text))
 
 
@@ -22,7 +22,34 @@ def find_media_urls(text: str) -> list[str]:
     return re.findall(r'https(?:(?!https).)*?sid=\w{6}', text)
 
 
-def get_content_media(media_urls: list[str]) -> OrderedSet[Media]:
+async def get_medias(instagram_ids: Iterable[str], audio_only=False) -> OrderedSet[Media]:
+    medias: OrderedSet[Media] = OrderedSet()
+
+    if not (instagram_urls := make_urls(OrderedSet(instagram_ids))):
+        return medias
+
+    async with aiohttp.ClientSession() as session:
+        headers = {"User-Agent": f"user-agent: {random.choice(constants.GOOGLE_BOT_USER_AGENTS)}"}
+        for instagram_url in instagram_urls:
+            try:
+                html = await flanautils.get_request(instagram_url, headers=headers, session=session)
+                new_medias = get_post_medias(find_media_urls(html))
+                for media in new_medias:
+                    media.bytes_ = await flanautils.get_request(media.url, headers=headers, session=session)
+                medias |= new_medias
+            except ResponseError:
+                pass
+
+    if not medias:
+        raise InstagramMediaNotFoundError
+
+    if audio_only:
+        medias = await functions.filter_audios(medias)
+
+    return medias
+
+
+def get_post_medias(media_urls: list[str]) -> OrderedSet[Media]:
     last_url = ''
     final_urls = OrderedSet()
     thumbnail_urls = OrderedSet()
@@ -63,32 +90,5 @@ def get_content_media(media_urls: list[str]) -> OrderedSet[Media]:
     return content_medias
 
 
-async def get_medias(instagram_ids: Iterable[str], audio_only=False) -> OrderedSet[Media]:
-    medias: OrderedSet[Media] = OrderedSet()
-
-    if not (instagram_urls := make_instagram_urls(OrderedSet(instagram_ids))):
-        return medias
-
-    async with aiohttp.ClientSession() as session:
-        headers = {"User-Agent": f"user-agent: {random.choice(constants.GOOGLE_BOT_USER_AGENTS)}"}
-        for instagram_url in instagram_urls:
-            try:
-                html = await flanautils.get_request(instagram_url, headers=headers, session=session)
-                new_medias = get_content_media(find_media_urls(html))
-                for media in new_medias:
-                    media.bytes_ = await flanautils.get_request(media.url, headers=headers, session=session)
-                medias |= new_medias
-            except ResponseError:
-                pass
-
-    if not medias:
-        raise InstagramMediaNotFoundError
-
-    if audio_only:
-        medias = await functions.filter_audios(medias)
-
-    return medias
-
-
-def make_instagram_urls(ids: Iterable[str]) -> list[str]:
+def make_urls(ids: Iterable[str]) -> list[str]:
     return [f'{INSTAGRAM_BASE_URL}{INSTAGRAM_CONTENT_PATH}{id}' for id in ids]
