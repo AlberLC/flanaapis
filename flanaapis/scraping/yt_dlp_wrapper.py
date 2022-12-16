@@ -13,7 +13,7 @@ def run_youtube_dl(options: dict, url: str):
     with flanautils.suppress_stderr():
         ydl = YoutubeDL(options)
         try:
-            fields = ('album', 'artist', 'ext', 'preview', 'title', 'track')
+            fields = ('album', 'artist', 'ext', 'extractor_key', 'preview', 'title', 'track')
             return {k: v for k, v in ydl.extract_info(url).items() if k in fields}
         except utils.DownloadError:
             pass
