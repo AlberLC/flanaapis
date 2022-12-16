@@ -50,3 +50,4 @@ uvicorn==0.17.0
 websockets==10.1
 wsproto==1.0.0
 yarl==1.7.2
+yt-dlp==2022.11.11
