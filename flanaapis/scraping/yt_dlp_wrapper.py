@@ -93,4 +93,4 @@ async def get_medias(
     preferred_extension: str = None,
     timeout: int | float = None
 ) -> list[Media]:
-    return [await get_media(url, audio_only, preferred_video_codec, preferred_extension, timeout) for url in urls]
+    return [media for url in urls if (media := await get_media(url, audio_only, preferred_video_codec, preferred_extension, timeout))]
