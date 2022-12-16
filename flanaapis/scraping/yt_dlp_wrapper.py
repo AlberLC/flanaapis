@@ -80,11 +80,17 @@ async def get_media(
     else:
         song_info = None
 
+    source = media_info.get('extractor_key', '')
+    try:
+        source = Source[source.upper()]
+    except (AttributeError, KeyError):
+        pass
+
     return Media(
         bytes_,
         MediaType.AUDIO if audio_only else MediaType.VIDEO,
         extension,
-        source=media_info.get('extractor_key'),
+        source=source,
         title=title,
         song_info=song_info
     )
