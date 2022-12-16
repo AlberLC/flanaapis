@@ -48,6 +48,10 @@ async def get_media(
         options |= {'format_sort': options.get('format_sort', {}) | {'ext': preferred_extension}}
 
     if not (media_info := await flanautils.run_process_async(run_youtube_dl, options, url, timeout=timeout)):
+        for path in pathlib.Path().iterdir():
+            if path.stem == output_file_stem:
+                path.unlink()
+                break
         return
 
     output_file_name = f'{output_file_stem}.{extension}' if (extension := media_info.get('ext')) else output_file_stem
