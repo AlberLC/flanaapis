@@ -4,7 +4,6 @@ from typing import Iterable
 import flanautils
 from flanautils import Media, MediaType, OrderedSet, Source
 
-from flanaapis.exceptions import TikTokMediaNotFoundError
 from flanaapis.scraping import constants, functions
 
 
@@ -30,9 +29,6 @@ async def get_download_url_medias(download_urls: Iterable[str] = (), audio_only=
 
     for download_url in OrderedSet(download_urls):
         medias.add(Media(download_url, MediaType.VIDEO, 'mp4', Source.TIKTOK))
-
-    if not medias:
-        raise TikTokMediaNotFoundError
 
     if audio_only:
         medias = await functions.filter_audios(medias)
