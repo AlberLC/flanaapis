@@ -14,10 +14,9 @@ def run_youtube_dl(options: dict, url: str):
     with flanautils.suppress_stderr():
         ydl = yt_dlp.YoutubeDL(options)
         try:
-            fields = ('album', 'artist', 'extractor_key', 'preview', 'title', 'track')
             filtered_info = {}
             for k, v in ydl.extract_info(url).items():
-                if k in fields:
+                if k in ('album', 'artist', 'extractor_key', 'preview', 'title', 'track'):
                     filtered_info[k] = v
                 elif k == 'requested_downloads':
                     filtered_info['final_extension'] = v[0].get('ext')
