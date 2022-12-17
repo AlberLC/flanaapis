@@ -9,10 +9,10 @@ import yt_dlp
 from flanautils import Media, MediaType, OrderedSet, Source
 
 from flanaapis.exceptions import RedditMediaNotFoundError, ResponseError
-from flanaapis.scraping import functions, yt_dlp_wrapper
+from flanaapis.scraping import functions, instagram, tiktok, twitter, yt_dlp_wrapper
 
-BASE_URL = 'https://www.reddit.com/'
-CONTENT_PATH = 'comments/'
+REDDIT_BASE_URL = 'https://www.reddit.com/'
+REDDIT_CONTENT_PATH = 'comments/'
 
 
 def find_ids(text: str) -> OrderedSet[str]:
@@ -85,12 +85,12 @@ async def get_medias_from_data(
             elif url := yt_dlp.utils.traverse_obj(media_data, ('s', 'mp4')):
                 medias.add(Media(html.unescape(url), MediaType.VIDEO, 'mp4', Source.REDDIT))
 
+    # internal hosted videos
     internal_hosted_video_urls = OrderedSet()
     internal_hosted_video_urls.add(yt_dlp.utils.traverse_obj(data, ('media', 'reddit_video', 'fallback_url')))
     internal_hosted_video_urls.add(yt_dlp.utils.traverse_obj(data, ('secure_media', 'reddit_video', 'fallback_url')))
     internal_hosted_video_urls -= None
     if internal_hosted_video_urls:
-        # internal hosted videos
         for internal_hosted_video_url in internal_hosted_video_urls:
             video_url = html.unescape(internal_hosted_video_url)
             audio_url = re.sub('_\d+\.mp4', '_audio.mp4', video_url)
@@ -102,9 +102,31 @@ async def get_medias_from_data(
             else:
                 bytes_ = await flanautils.merge(video_bytes, audio_bytes)
             medias.add(Media(bytes_, MediaType.VIDEO, source=Source.REDDIT))
-    else:
-        # external media
-        if any((data.get('media'), data.get('secure_media'), data.get('media_embed'), data.get('secure_media_embed'))):
+
+    # external media
+    if (
+            not data.get('is_self')
+            and
+            data.get('post_hint') != 'image'
+            and
+            not data.get('is_gallery')
+            and
+            not internal_hosted_video_urls
+    ):
+        if 'instagram' in data['url']:
+            medias |= await instagram.get_medias(instagram.find_ids(data['url']))
+        elif 'tiktok' in data['url']:
+            medias |= await tiktok.get_medias(
+                await tiktok.find_users_and_ids(data['url']),
+                tiktok.find_download_urls(data['url']),
+                audio_only,
+                preferred_video_codec,
+                preferred_extension,
+                timeout
+            )
+        elif 'twitter' in data['url']:
+            medias |= await twitter.get_medias(twitter.find_ids(data['url']))
+        else:
             medias.add(
                 await yt_dlp_wrapper.get_media(
                     html.unescape(data['url']),
@@ -119,4 +141,4 @@ async def get_medias_from_data(
 
 
 def make_urls(ids: Iterable[str]) -> list[str]:
-    return [f'{BASE_URL}{CONTENT_PATH}{id}.json' for id in ids]
+    return [f'{REDDIT_BASE_URL}{REDDIT_CONTENT_PATH}{id}.json' for id in ids]
