@@ -10,21 +10,21 @@ from flanaapis.scraping import constants, functions, yt_dlp_wrapper
 BASE_URL = 'https://www.tiktok.com/'
 
 
+async def _find_ids(text: str, pattern: str) -> OrderedSet[str]:
+    return OrderedSet(re.findall(pattern, text), re.findall(pattern, ''.join(await get_desktop_urls(text))))
+
+
 def find_download_urls(text: str) -> list[str]:
     partial_download_urls = re.findall(r'web\.tiktok\.com.+=&vr=', text)
     return [f'https://v16-{partial_download_url}' for partial_download_url in partial_download_urls]
 
 
 async def find_ids(text: str) -> OrderedSet[str]:
-    text = f"{text}{''.join(await get_desktop_urls(text))}"
-
-    return OrderedSet(re.findall('tok.*v(?:ideo)?/(\d+)', text))
+    return await _find_ids(text, 'tok.*v(?:ideo)?/(\d+)')
 
 
 async def find_users_and_ids(text: str) -> OrderedSet[str]:
-    text = f"{text}{''.join(await get_desktop_urls(text))}"
-
-    return OrderedSet(re.findall('tok\.com/(.*/\d+)', text))
+    return await _find_ids(text, 'tok\.com/(.*/\d+)')
 
 
 async def get_desktop_urls(text: str) -> OrderedSet[str]:
