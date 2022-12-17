@@ -1,4 +1,4 @@
-from flanautils.exceptions import NotFoundError, ResponseError
+from flanautils import NotFoundError, ResponseError
 
 
 class InstagramLoginError(ResponseError):

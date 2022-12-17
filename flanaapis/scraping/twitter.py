@@ -4,9 +4,9 @@ from typing import Iterable
 
 import aiohttp
 import flanautils
-from flanautils import Media, MediaType, OrderedSet, Source, return_if_first_empty
+from flanautils import Media, MediaType, OrderedSet, ResponseError, Source, return_if_first_empty
 
-from flanaapis.exceptions import ResponseError, TwitterMediaNotFoundError
+from flanaapis.exceptions import TwitterMediaNotFoundError
 from flanaapis.scraping import functions
 
 TWITTER_ENDPOINT_V1 = 'https://api.twitter.com/1.1/statuses/lookup.json'

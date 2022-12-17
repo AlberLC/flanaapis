@@ -4,9 +4,9 @@ from typing import Iterable
 
 import aiohttp
 import flanautils
-from flanautils import Media, MediaType, OrderedSet, Source
+from flanautils import Media, MediaType, OrderedSet, ResponseError, Source
 
-from flanaapis.exceptions import InstagramMediaNotFoundError, ResponseError
+from flanaapis.exceptions import InstagramMediaNotFoundError
 from flanaapis.scraping import constants, functions
 
 INSTAGRAM_BASE_URL = 'https://www.instagram.com/'
