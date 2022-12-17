@@ -4,7 +4,10 @@ from typing import Iterable
 import flanautils
 from flanautils import Media, MediaType, OrderedSet, Source
 
-from flanaapis.scraping import constants, functions
+from flanaapis.exceptions import TikTokMediaNotFoundError
+from flanaapis.scraping import constants, functions, yt_dlp_wrapper
+
+BASE_URL = 'https://www.tiktok.com/'
 
 
 def find_download_urls(text: str) -> list[str]:
@@ -13,24 +16,54 @@ def find_download_urls(text: str) -> list[str]:
 
 
 async def find_ids(text: str) -> OrderedSet[str]:
+    text = f"{text}{''.join(await get_desktop_urls(text))}"
+
+    return OrderedSet(re.findall('tok.*v(?:ideo)?/(\d+)', text))
+
+
+async def find_users_and_ids(text: str) -> OrderedSet[str]:
+    text = f"{text}{''.join(await get_desktop_urls(text))}"
+
+    return OrderedSet(re.findall('tok\.com/(.*/\d+)', text))
+
+
+async def get_desktop_urls(text: str) -> OrderedSet[str]:
     mobile_ids = re.findall(r'vm\.tiktok\.com/(\w+)', text)
     mobile_tiktok_urls = [f'https://vm.tiktok.com/{mobile_id}/' for mobile_id in mobile_ids]
-    tiktok_urls = [str((await flanautils.get_request(mobile_tiktok_url, headers={'User-Agent': constants.USER_AGENT}, return_response=True)).url) for mobile_tiktok_url in mobile_tiktok_urls]
-    text = f"{text}{''.join(tiktok_urls)}"
-
-    return OrderedSet(re.findall(r'tok.*v(?:ideo)?/(\d+)', text))
+    return OrderedSet([str((await flanautils.get_request(mobile_tiktok_url, headers={'User-Agent': constants.USER_AGENT}, return_response=True)).url) for mobile_tiktok_url in mobile_tiktok_urls])
 
 
-async def get_download_url_medias(download_urls: Iterable[str] = (), audio_only=False) -> OrderedSet[Media]:
+async def get_medias(
+    users_and_ids: Iterable[str] = (),
+    download_urls: Iterable[str] = (),
+    audio_only=False,
+    preferred_video_codec: str = None,
+    preferred_extension: str = None,
+    timeout_for_media: int | float = None
+) -> OrderedSet[Media]:
     medias: OrderedSet[Media] = OrderedSet()
 
-    if not download_urls:
+    urls = make_urls(OrderedSet(users_and_ids))
+    download_urls = OrderedSet(download_urls)
+
+    if not urls and not download_urls:
         return medias
+
+    for url in urls:
+        if media := await yt_dlp_wrapper.get_media(url, audio_only, preferred_video_codec, preferred_extension, timeout_for_media):
+            medias.add(media)
 
     for download_url in OrderedSet(download_urls):
         medias.add(Media(download_url, MediaType.VIDEO, 'mp4', Source.TIKTOK))
+
+    if not medias:
+        raise TikTokMediaNotFoundError
 
     if audio_only:
         medias = await functions.filter_audios(medias)
 
     return medias
+
+
+def make_urls(users_and_ids: Iterable[str]) -> list[str]:
+    return [f'{BASE_URL}{user_and_id}' for user_and_id in users_and_ids]
