@@ -91,8 +91,14 @@ async def get_medias_from_data(
         # internal hosted videos
         for internal_hosted_video_url in internal_hosted_video_urls:
             video_url = html.unescape(internal_hosted_video_url)
-            audio_url = re.sub('_\d+\.mp4', '_audio.mp4', html.unescape(internal_hosted_video_url))
-            bytes_ = await flanautils.merge(await flanautils.get_request(video_url), await flanautils.get_request(audio_url))
+            audio_url = re.sub('_\d+\.mp4', '_audio.mp4', video_url)
+            video_bytes = await flanautils.get_request(video_url)
+            try:
+                audio_bytes = await flanautils.get_request(audio_url)
+            except ResponseError:
+                bytes_ = video_bytes
+            else:
+                bytes_ = await flanautils.merge(video_bytes, audio_bytes)
             medias.add(Media(bytes_, MediaType.VIDEO, source=Source.REDDIT))
     else:
         # external media
