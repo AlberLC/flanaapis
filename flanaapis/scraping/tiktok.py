@@ -20,7 +20,7 @@ def find_download_urls(text: str) -> list[str]:
 
 
 async def find_ids(text: str) -> OrderedSet[str]:
-    return await _find_ids(text, 'tok.*v(?:ideo)?/(\d+)')
+    return await _find_ids(text, 'tok.*[tv](?:ideo)?/(\d+)')
 
 
 async def find_users_and_ids(text: str) -> OrderedSet[str]:
@@ -29,8 +29,11 @@ async def find_users_and_ids(text: str) -> OrderedSet[str]:
 
 async def get_desktop_urls(text: str) -> OrderedSet[str]:
     mobile_ids = re.findall(r'vm\.tiktok\.com/(\w+)', text)
-    mobile_tiktok_urls = [f'https://vm.tiktok.com/{mobile_id}/' for mobile_id in mobile_ids]
-    return OrderedSet([str((await flanautils.get_request(mobile_tiktok_url, headers={'User-Agent': constants.USER_AGENT}, return_response=True)).url) for mobile_tiktok_url in mobile_tiktok_urls])
+    mobile_urls = [f'https://vm.tiktok.com/{mobile_id}/' for mobile_id in mobile_ids]
+    'https://www.tiktok.com/t/ZTRVN7RgG/'
+    t_ids = re.findall(r'tok.*t/(\w+)', text)
+    t_urls = [f'{BASE_URL}t/{t_id}' for t_id in t_ids]
+    return OrderedSet([str((await flanautils.get_request(mobile_url, headers={'User-Agent': constants.USER_AGENT}, return_response=True)).url) for mobile_url in mobile_urls + t_urls])
 
 
 async def get_medias(
