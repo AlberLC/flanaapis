@@ -1,3 +1,4 @@
+import asyncio
 import pathlib
 import uuid
 from collections.abc import Iterable
@@ -47,7 +48,12 @@ async def get_media(
     if preferred_extension:
         options |= {'format_sort': options.get('format_sort', {}) | {'ext': preferred_extension}}
 
-    if not (media_info := await flanautils.run_process_async(run_youtube_dl, options, url, timeout=timeout)):
+    try:
+        media_info = await flanautils.run_process_async(run_youtube_dl, options, url, timeout=timeout)
+    except asyncio.TimeoutError:
+        media_info = None
+
+    if not media_info:
         for path in pathlib.Path().iterdir():
             if path.stem == output_file_stem:
                 path.unlink()
