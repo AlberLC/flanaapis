@@ -11,8 +11,8 @@ from flanautils import Media, MediaType, OrderedSet, Source
 from flanaapis.exceptions import RedditMediaNotFoundError, ResponseError
 from flanaapis.scraping import functions, yt_dlp_wrapper
 
-REDDIT_BASE_URL = 'https://www.reddit.com/'
-REDDIT_CONTENT_PATH = 'comments/'
+BASE_URL = 'https://www.reddit.com/'
+CONTENT_PATH = 'comments/'
 
 
 def find_ids(text: str) -> OrderedSet[str]:
@@ -119,4 +119,4 @@ async def get_medias_from_data(
 
 
 def make_urls(ids: Iterable[str]) -> list[str]:
-    return [f'{REDDIT_BASE_URL}{REDDIT_CONTENT_PATH}{id}.json' for id in ids]
+    return [f'{BASE_URL}{CONTENT_PATH}{id}.json' for id in ids]
