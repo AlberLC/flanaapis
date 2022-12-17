@@ -4,19 +4,19 @@ import uuid
 from collections.abc import Iterable
 
 import flanautils
+import yt_dlp
 from flanautils import Media, MediaType, Source
-from yt_dlp import YoutubeDL, utils
 
 TITLE_MAX_LENGTH = 20
 
 
 def run_youtube_dl(options: dict, url: str):
     with flanautils.suppress_stderr():
-        ydl = YoutubeDL(options)
+        ydl = yt_dlp.YoutubeDL(options)
         try:
-            fields = ('album', 'artist', 'ext', 'extractor_key', 'preview', 'title', 'track')
+            fields = ('album', 'artist', 'ext', 'extractor_key', 'preview', 'requested_downloads', 'title', 'track')
             return {k: v for k, v in ydl.extract_info(url).items() if k in fields}
-        except utils.DownloadError:
+        except yt_dlp.utils.DownloadError:
             pass
 
 
@@ -60,7 +60,8 @@ async def get_media(
                 break
         return
 
-    output_file_name = f'{output_file_stem}.{extension}' if (extension := media_info.get('ext')) else output_file_stem
+    extension = yt_dlp.traverse_obj(media_info, ('requested_downloads', 0, 'ext'))
+    output_file_name = f'{output_file_stem}.{extension}' if extension else output_file_stem
     output_file_path = pathlib.Path(output_file_name)
     bytes_ = output_file_path.read_bytes()
 
