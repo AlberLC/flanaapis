@@ -126,16 +126,14 @@ async def get_medias_from_data(
             )
         elif 'twitter' in data['url']:
             medias |= await twitter.get_medias(twitter.find_ids(data['url']))
-        else:
-            medias.add(
-                await yt_dlp_wrapper.get_media(
-                    html.unescape(data['url']),
-                    audio_only,
-                    preferred_video_codec,
-                    preferred_extension,
-                    timeout
-                )
-            )
+        elif media := await yt_dlp_wrapper.get_media(
+                html.unescape(data['url']),
+                audio_only,
+                preferred_video_codec,
+                preferred_extension,
+                timeout
+        ):
+            medias.add(media)
 
     return medias
 
