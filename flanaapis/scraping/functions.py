@@ -16,8 +16,11 @@ async def filter_audios(medias: Iterable[Media]) -> OrderedSet[Media]:
                 bytes_ = await flanautils.to_mp3(media.bytes_ or await flanautils.get_request(media.url))
             except ValueError:
                 continue
+            else:
+                extension = 'mp3'
         elif media.type_ is MediaType.AUDIO:
             bytes_ = media.bytes_
+            extension = media.extension
         else:
             continue
 
@@ -25,7 +28,7 @@ async def filter_audios(medias: Iterable[Media]) -> OrderedSet[Media]:
         new_media.url = None
         new_media.bytes_ = bytes_
         new_media.type_ = MediaType.AUDIO
-        new_media.extension = 'mp3'
+        new_media.extension = extension
         filtered_medias.add(new_media)
 
     return filtered_medias
