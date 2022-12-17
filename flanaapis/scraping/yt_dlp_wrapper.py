@@ -14,8 +14,15 @@ def run_youtube_dl(options: dict, url: str):
     with flanautils.suppress_stderr():
         ydl = yt_dlp.YoutubeDL(options)
         try:
-            fields = ('album', 'artist', 'ext', 'extractor_key', 'preview', 'requested_downloads', 'title', 'track')
-            return {k: v for k, v in ydl.extract_info(url).items() if k in fields}
+            fields = ('album', 'artist', 'extractor_key', 'preview', 'title', 'track')
+            filtered_info = {}
+            for k, v in ydl.extract_info(url).items():
+                if k in fields:
+                    filtered_info[k] = v
+                elif k == 'requested_downloads':
+                    filtered_info['final_extension'] = v[0].get('ext')
+                    filtered_info['output_file_name'] = v[0].get('_filename')
+            return filtered_info
         except yt_dlp.utils.DownloadError:
             pass
 
@@ -61,11 +68,11 @@ async def get_media(
         return
 
     if (
-            not (extension := yt_dlp.traverse_obj(media_info, ('requested_downloads', 0, 'ext')))
+            not (extension := media_info.get('extension'))
             and
-            (filename := yt_dlp.traverse_obj(media_info, ('requested_downloads', 0, '_filename')))
+            (output_file_name := media_info.get('output_file_name'))
     ):
-        extension = pathlib.Path(filename).suffix.strip('.')
+        extension = pathlib.Path(output_file_name).suffix.strip('.')
     output_file_name = f'{output_file_stem}.{extension}' if extension else output_file_stem
     output_file_path = pathlib.Path(output_file_name)
     bytes_ = output_file_path.read_bytes()
