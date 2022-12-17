@@ -60,7 +60,12 @@ async def get_media(
                 break
         return
 
-    extension = yt_dlp.traverse_obj(media_info, ('requested_downloads', 0, 'ext'))
+    if (
+            not (extension := yt_dlp.traverse_obj(media_info, ('requested_downloads', 0, 'ext')))
+            and
+            (filename := yt_dlp.traverse_obj(media_info, ('requested_downloads', 0, '_filename')))
+    ):
+        extension = pathlib.Path(filename).suffix.strip('.')
     output_file_name = f'{output_file_stem}.{extension}' if extension else output_file_stem
     output_file_path = pathlib.Path(output_file_name)
     bytes_ = output_file_path.read_bytes()
