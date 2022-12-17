@@ -1,4 +1,5 @@
 import html
+import pathlib
 import re
 from collections.abc import Iterable
 
@@ -65,8 +66,9 @@ async def get_medias_from_data(
     data = data[0]['data']['children'][0]['data']
 
     # image
-    if data.get('post_hint') == 'image' and 'jpg' in data['url']:
-        medias.add(Media(html.unescape(data['url']), MediaType.IMAGE, 'jpg', Source.REDDIT))
+    if data.get('post_hint') == 'image':
+        extension = pathlib.Path(data['url']).suffix.strip('.')
+        medias.add(Media(html.unescape(data['url']), MediaType.IMAGE, extension, Source.REDDIT))
 
     # images / gifs
     if data.get('media_metadata'):
