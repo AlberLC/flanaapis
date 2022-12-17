@@ -67,7 +67,7 @@ async def get_media(
         return
 
     if (
-            not (extension := media_info.get('extension'))
+            not (extension := media_info.get('final_extension'))
             and
             (output_file_name := media_info.get('output_file_name'))
     ):
