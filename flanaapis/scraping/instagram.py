@@ -22,17 +22,17 @@ def find_media_urls(text: str) -> list[str]:
     return re.findall(r'https(?:(?!https).)*?sid=\w{6}', text)
 
 
-async def get_medias(instagram_ids: Iterable[str], audio_only=False) -> OrderedSet[Media]:
+async def get_medias(ids: Iterable[str], audio_only=False) -> OrderedSet[Media]:
     medias: OrderedSet[Media] = OrderedSet()
 
-    if not (instagram_urls := make_urls(OrderedSet(instagram_ids))):
+    if not (urls := make_urls(OrderedSet(ids))):
         return medias
 
     async with aiohttp.ClientSession() as session:
         headers = {"User-Agent": f"user-agent: {random.choice(constants.GOOGLE_BOT_USER_AGENTS)}"}
-        for instagram_url in instagram_urls:
+        for url in urls:
             try:
-                html = await flanautils.get_request(instagram_url, headers=headers, session=session)
+                html = await flanautils.get_request(url, headers=headers, session=session)
                 new_medias = get_post_medias(find_media_urls(html))
                 for media in new_medias:
                     media.bytes_ = await flanautils.get_request(media.url, headers=headers, session=session)
