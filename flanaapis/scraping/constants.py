@@ -13,5 +13,5 @@ TWITTER_ENDPOINT_V1 = 'https://api.twitter.com/1.1/statuses/lookup.json'
 TWITTER_ENDPOINT_V2 = 'https://api.twitter.com/2/tweets'
 USER_AGENT = 'Instagram 123.0.0.21.114 (iPhone; CPU iPhone OS 11_4 like Mac OS X; en_US; en-US; scale=2.00; 750x1334) AppleWebKit/605.1.15'
 USER_AGENT_2 = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36'
-YT_DLP_WRAPPER_DISCARDED_DOMAINS = ('gfycat', 'gifbin', 'giphy', 'imgur', 'reactiongifs', 'tenor')
+YT_DLP_WRAPPER_DISCARDED_DOMAINS = ('Gfycat', 'Gifbin', 'Giphy', 'Imgur', 'ReactionGifs', 'Tenor')
 YT_DLP_WRAPPER_TITLE_MAX_LENGTH = 20
