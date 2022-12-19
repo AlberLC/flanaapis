@@ -18,9 +18,10 @@ def find_ids(text: str) -> OrderedSet[str]:
 
 async def get_medias(
     ids: Iterable[str],
-    audio_only=False,
     preferred_video_codec: str = None,
     preferred_extension: str = None,
+    audio_only=False,
+    force_gif_download=False,
     timeout_for_media: int | float = None
 ) -> OrderedSet[Media]:
     medias: OrderedSet[Media] = OrderedSet()
@@ -34,9 +35,10 @@ async def get_medias(
                 data = await flanautils.get_request(url, session=session)
                 medias |= await get_medias_from_data(
                     data,
-                    audio_only,
                     preferred_video_codec,
                     preferred_extension,
+                    audio_only,
+                    force_gif_download,
                     timeout_for_media
                 )
             except ResponseError:
@@ -53,9 +55,10 @@ async def get_medias(
 
 async def get_medias_from_data(
     data: list[dict],
-    audio_only=False,
     preferred_video_codec: str = None,
     preferred_extension: str = None,
+    audio_only=False,
+    force_gif_download=False,
     timeout: int | float = None
 ) -> OrderedSet[Media]:
     medias = OrderedSet()
@@ -125,9 +128,10 @@ async def get_medias_from_data(
             medias |= await twitter.get_medias(twitter.find_ids(data['url']))
         elif media := await yt_dlp_wrapper.get_media(
                 html.unescape(data['url']),
-                audio_only,
                 preferred_video_codec,
                 preferred_extension,
+                audio_only,
+                force_gif_download,
                 timeout
         ):
             medias.add(media)

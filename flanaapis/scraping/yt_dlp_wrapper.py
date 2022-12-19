@@ -28,11 +28,15 @@ def run_youtube_dl(options: dict, url: str):
 
 async def get_media(
     url: str,
-    audio_only=False,
     preferred_video_codec: str = None,
     preferred_extension: str = None,
+    audio_only=False,
+    force_gif_download=False,
     timeout: int | float = None
 ) -> Media | None:
+    if not force_gif_download and any(domain in url for domain in constants.YT_DLP_WRAPPER_DISCARDED_DOMAINS):
+        return
+
     output_file_stem = str(uuid.uuid1())
 
     options = {
@@ -76,6 +80,19 @@ async def get_media(
     output_file_path = pathlib.Path(output_file_name)
     bytes_ = output_file_path.read_bytes()
 
+    if audio_only:
+        type_ = MediaType.AUDIO
+    elif extension == 'gif':
+        type_ = MediaType.GIF
+    else:
+        type_ = MediaType.VIDEO
+
+    source = media_info.get('extractor_key', '')
+    try:
+        source = Source[source.upper()]
+    except (AttributeError, KeyError):
+        pass
+
     if title := media_info.get('title'):
         title = title[:constants.YT_DLP_WRAPPER_TITLE_MAX_LENGTH]
         try:
@@ -98,15 +115,9 @@ async def get_media(
     else:
         song_info = None
 
-    source = media_info.get('extractor_key', '')
-    try:
-        source = Source[source.upper()]
-    except (AttributeError, KeyError):
-        pass
-
     return Media(
         bytes_,
-        MediaType.AUDIO if audio_only else MediaType.VIDEO,
+        type_,
         extension,
         source=source,
         title=title,
@@ -116,9 +127,17 @@ async def get_media(
 
 async def get_medias(
     urls: Iterable[str],
-    audio_only=False,
     preferred_video_codec: str = None,
     preferred_extension: str = None,
-    timeout: int | float = None
+    audio_only=False,
+    force_gif_download=False,
+    timeout_for_media: int | float = None
 ) -> list[Media]:
-    return [media for url in urls if (media := await get_media(url, audio_only, preferred_video_codec, preferred_extension, timeout))]
+    return [media for url in urls if (media := await get_media(
+        url,
+        preferred_video_codec,
+        preferred_extension,
+        audio_only,
+        force_gif_download,
+        timeout_for_media
+    ))]

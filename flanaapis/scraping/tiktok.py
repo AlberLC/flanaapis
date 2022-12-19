@@ -40,6 +40,7 @@ async def get_medias(
     audio_only=False,
     preferred_video_codec: str = None,
     preferred_extension: str = None,
+    force_gif_download=False,
     timeout_for_media: int | float = None
 ) -> OrderedSet[Media]:
     medias: OrderedSet[Media] = OrderedSet()
@@ -51,7 +52,7 @@ async def get_medias(
         return medias
 
     for url in urls:
-        if media := await yt_dlp_wrapper.get_media(url, audio_only, preferred_video_codec, preferred_extension, timeout_for_media):
+        if media := await yt_dlp_wrapper.get_media(url, preferred_video_codec, preferred_extension, audio_only, force_gif_download, timeout_for_media):
             medias.add(media)
 
     for download_url in OrderedSet(download_urls):
