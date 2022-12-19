@@ -119,9 +119,10 @@ async def get_medias_from_data(
             medias |= await tiktok.get_medias(
                 await tiktok.find_users_and_ids(data['url']),
                 tiktok.find_download_urls(data['url']),
-                audio_only,
                 preferred_video_codec,
                 preferred_extension,
+                audio_only,
+                force_gif_download,
                 timeout
             )
         elif 'twitter' in data['url']:
