@@ -67,4 +67,4 @@ async def get_medias(
 
 
 def make_urls(users_and_ids: Iterable[str]) -> list[str]:
-    return [f'{BASE_URL}{user_and_id}' for user_and_id in users_and_ids]
+    return [f'{constants.TIKTOK_BASE_URL}{user_and_id}' for user_and_id in users_and_ids]
