@@ -7,10 +7,7 @@ import flanautils
 from flanautils import Media, MediaType, OrderedSet, ResponseError, Source, return_if_first_empty
 
 from flanaapis.exceptions import TwitterMediaNotFoundError
-from flanaapis.scraping import functions
-
-ENDPOINT_V1 = 'https://api.twitter.com/1.1/statuses/lookup.json'
-ENDPOINT_V2 = 'https://api.twitter.com/2/tweets'
+from flanaapis.scraping import constants, functions
 
 
 @return_if_first_empty(OrderedSet)
@@ -31,7 +28,7 @@ async def get_medias(ids: Iterable[str], audio_only=False) -> OrderedSet[Media]:
         return medias
 
     try:
-        tweets_data = await get_tweet_data(ENDPOINT_V1, params={'id': ','.join(ids), 'tweet_mode': 'extended'})
+        tweets_data = await get_tweet_data(constants.TWITTER_ENDPOINT_V1, params={'id': ','.join(ids), 'tweet_mode': 'extended'})
     except aiohttp.ClientError:
         tweets_data = []
 
@@ -55,7 +52,7 @@ async def get_medias(ids: Iterable[str], audio_only=False) -> OrderedSet[Media]:
 @return_if_first_empty([])
 async def get_referenced_tweet_urls(ids: Iterable[str]) -> list[str]:
     try:
-        tweets_data = await get_tweet_data(ENDPOINT_V2, params={'ids': ','.join(ids), 'expansions': 'attachments.media_keys', 'media.fields': 'media_key', 'tweet.fields': 'entities'})
+        tweets_data = await get_tweet_data(constants.TWITTER_ENDPOINT_V2, params={'ids': ','.join(ids), 'expansions': 'attachments.media_keys', 'media.fields': 'media_key', 'tweet.fields': 'entities'})
     except ResponseError:
         return []
 

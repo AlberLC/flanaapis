@@ -7,7 +7,7 @@ import flanautils
 import yt_dlp
 from flanautils import Media, MediaType, Source
 
-TITLE_MAX_LENGTH = 20
+from flanaapis.scraping import constants
 
 
 def run_youtube_dl(options: dict, url: str):
@@ -77,7 +77,7 @@ async def get_media(
     bytes_ = output_file_path.read_bytes()
 
     if title := media_info.get('title'):
-        title = title[:TITLE_MAX_LENGTH]
+        title = title[:constants.YT_DLP_WRAPPER_TITLE_MAX_LENGTH]
         try:
             bytes_ = await flanautils.edit_metadata(output_file_path, {'title': title}, overwrite=False)
         except ValueError:

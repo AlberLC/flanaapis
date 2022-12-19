@@ -9,10 +9,6 @@ from flanautils import Media, MediaType, OrderedSet, ResponseError, Source
 from flanaapis.exceptions import InstagramMediaNotFoundError
 from flanaapis.scraping import constants, functions
 
-BASE_URL = 'https://www.instagram.com/'
-LOGIN_URL = BASE_URL + 'accounts/login/ajax/'
-CONTENT_PATH = 'p/'
-
 
 def find_ids(text: str) -> OrderedSet[str]:
     return OrderedSet(re.findall(r'gram\.com/.+?/(.{11})', text))
@@ -91,4 +87,4 @@ def get_post_medias(media_urls: list[str]) -> OrderedSet[Media]:
 
 
 def make_urls(ids: Iterable[str]) -> list[str]:
-    return [f'{BASE_URL}{CONTENT_PATH}{id}' for id in ids]
+    return [f'{constants.INSTAGRAM_BASE_URL}{constants.INSTAGRAM_CONTENT_PATH}{id}' for id in ids]
