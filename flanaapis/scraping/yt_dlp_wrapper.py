@@ -34,7 +34,7 @@ async def get_media(
     force_gif_download=False,
     timeout: int | float = None
 ) -> Media | None:
-    if not force_gif_download and any(domain in url for domain in constants.YT_DLP_WRAPPER_DISCARDED_DOMAINS):
+    if not force_gif_download:
         for domain in constants.YT_DLP_WRAPPER_DISCARDED_DOMAINS:
             if domain.lower() in url:
                 return Media(url, MediaType.GIF, source=domain)
