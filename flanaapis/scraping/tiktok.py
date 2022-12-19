@@ -37,9 +37,9 @@ async def get_desktop_urls(text: str) -> OrderedSet[str]:
 async def get_medias(
     users_and_ids: Iterable[str] = (),
     download_urls: Iterable[str] = (),
-    audio_only=False,
     preferred_video_codec: str = None,
     preferred_extension: str = None,
+    audio_only=False,
     force_gif_download=False,
     timeout_for_media: int | float = None
 ) -> OrderedSet[Media]:
