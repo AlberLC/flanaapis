@@ -45,17 +45,12 @@ async def get_media(
     if not force:
         options['allowed_extractors'] = ['default', '-generic']
     if audio_only:
-        options |= {
-            'format': 'mp3/bestaudio/best',
-            'postprocessors': [{  # Extract audio using ffmpeg
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-            }]
-        }
+        options['format'] = 'mp3/bestaudio/best'
+        options['postprocessors'] = [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3'}]
     if preferred_video_codec:
-        options |= {'format_sort': {'+vcodec': preferred_video_codec}}
+        options['format_sort'] = {'+vcodec': preferred_video_codec}
     if preferred_extension:
-        options |= {'format_sort': options.get('format_sort', {}) | {'ext': preferred_extension}}
+        options['format_sort'] = options.get('format_sort', {}) | {'ext': preferred_extension}
 
     try:
         media_info = await flanautils.run_process_async(run_youtube_dl, options, url, timeout=timeout)
