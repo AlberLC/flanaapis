@@ -9,7 +9,7 @@ import yt_dlp
 from flanautils import Media, MediaType, OrderedSet, Source
 
 from flanaapis.exceptions import RedditMediaNotFoundError, ResponseError
-from flanaapis.scraping import constants, functions, instagram, tiktok, twitter, yt_dlp_wrapper
+from flanaapis.scraping import constants, functions, instagram, tiktok, twitter
 
 
 def find_ids(text: str) -> OrderedSet[str]:
@@ -20,8 +20,8 @@ async def get_medias(
     ids: Iterable[str],
     preferred_video_codec: str = None,
     preferred_extension: str = None,
+    force=False,
     audio_only=False,
-    force_gif_download=False,
     timeout_for_media: int | float = None
 ) -> OrderedSet[Media]:
     medias: OrderedSet[Media] = OrderedSet()
@@ -33,16 +33,17 @@ async def get_medias(
         for url in urls:
             try:
                 data = await flanautils.get_request(url, session=session)
-                medias |= await get_medias_from_data(
-                    data,
-                    preferred_video_codec,
-                    preferred_extension,
-                    audio_only,
-                    force_gif_download,
-                    timeout_for_media
-                )
             except ResponseError:
-                pass
+                continue
+
+            medias |= await get_medias_from_data(
+                data,
+                preferred_video_codec,
+                preferred_extension,
+                force,
+                audio_only,
+                timeout_for_media
+            )
 
     if not medias:
         raise RedditMediaNotFoundError
@@ -57,8 +58,8 @@ async def get_medias_from_data(
     data: list[dict],
     preferred_video_codec: str = None,
     preferred_extension: str = None,
+    force=False,
     audio_only=False,
-    force_gif_download=False,
     timeout: int | float = None
 ) -> OrderedSet[Media]:
     medias = OrderedSet()
@@ -121,8 +122,8 @@ async def get_medias_from_data(
                 tiktok.find_download_urls(data['url']),
                 preferred_video_codec,
                 preferred_extension,
+                force,
                 audio_only,
-                force_gif_download,
                 timeout
             )
         elif 'twitter' in data['url']:

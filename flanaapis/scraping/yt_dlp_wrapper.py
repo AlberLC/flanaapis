@@ -30,8 +30,8 @@ async def get_media(
     url: str,
     preferred_video_codec: str = None,
     preferred_extension: str = None,
+    force=False,
     audio_only=False,
-    force_gif_download=False,
     timeout: int | float = None
 ) -> Media | None:
     output_file_stem = str(uuid.uuid1())
@@ -42,6 +42,8 @@ async def get_media(
         'noplaylist': True,
         'extract_flat': 'in_playlist'
     }
+    if not force:
+        options['allowed_extractors'] = ['default', '-generic']
     if audio_only:
         options |= {
             'format': 'mp3/bestaudio/best',
@@ -126,15 +128,15 @@ async def get_medias(
     urls: Iterable[str],
     preferred_video_codec: str = None,
     preferred_extension: str = None,
+    force=False,
     audio_only=False,
-    force_gif_download=False,
     timeout_for_media: int | float = None
 ) -> list[Media]:
     return [media for url in urls if (media := await get_media(
         url,
         preferred_video_codec,
         preferred_extension,
+        force,
         audio_only,
-        force_gif_download,
         timeout_for_media
     ))]
