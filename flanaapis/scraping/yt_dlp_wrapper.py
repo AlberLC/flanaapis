@@ -11,8 +11,7 @@ from flanaapis.scraping import constants
 
 
 def run_youtube_dl(options: dict, url: str):
-    with flanautils.suppress_stderr():
-        ydl = yt_dlp.YoutubeDL(options)
+    with flanautils.suppress_stderr(), yt_dlp.YoutubeDL(options) as ydl:
         try:
             filtered_info = {}
             for k, v in ydl.extract_info(url).items():
@@ -91,7 +90,7 @@ async def get_media(
         title = title[:constants.YT_DLP_WRAPPER_TITLE_MAX_LENGTH]
         try:
             bytes_ = await flanautils.edit_metadata(output_file_path, {'title': title}, overwrite=False)
-        except ValueError:
+        except FileNotFoundError:
             pass
 
     output_file_path.unlink(missing_ok=True)
