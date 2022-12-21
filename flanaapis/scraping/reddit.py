@@ -65,11 +65,20 @@ async def get_medias_from_data(
     medias = OrderedSet()
 
     data = data[0]['data']['children'][0]['data']
+    data['url'] = html.unescape(data['url'])
 
     # image
-    if data.get('post_hint') == 'image':
+    if (
+            data.get('post_hint') == 'image'
+            or
+            data.get('is_reddit_media_domain')
+            and
+            not data.get('is_video')
+            and
+            data['url']
+    ):
         extension = pathlib.Path(data['url']).suffix.strip('.')
-        medias.add(Media(html.unescape(data['url']), MediaType.IMAGE, extension, Source.REDDIT))
+        medias.add(Media(data['url'], MediaType.IMAGE, extension, Source.REDDIT))
 
     # images / gifs
     if data.get('media_metadata'):
@@ -95,7 +104,10 @@ async def get_medias_from_data(
         for internal_hosted_video_url in internal_hosted_video_urls:
             video_url = html.unescape(internal_hosted_video_url)
             audio_url = re.sub('_\d+\.mp4', '_audio.mp4', video_url)
-            video_bytes = await flanautils.get_request(video_url)
+            try:
+                video_bytes = await flanautils.get_request(video_url)
+            except ResponseError:
+                continue
             try:
                 audio_bytes = await flanautils.get_request(audio_url)
             except ResponseError:
@@ -113,6 +125,8 @@ async def get_medias_from_data(
             not data.get('is_gallery')
             and
             not internal_hosted_video_urls
+            and
+            data['url']
     ):
         if 'instagram' in data['url']:
             medias |= await instagram.get_medias(instagram.find_ids(data['url']))
@@ -128,15 +142,8 @@ async def get_medias_from_data(
             )
         elif 'twitter' in data['url']:
             medias |= await twitter.get_medias(twitter.find_ids(data['url']))
-        elif media := await yt_dlp_wrapper.get_media(
-                html.unescape(data['url']),
-                preferred_video_codec,
-                preferred_extension,
-                audio_only,
-                force_gif_download,
-                timeout
-        ):
-            medias.add(media)
+        elif not data.get('is_reddit_media_domain'):
+            medias.add(Media(data['url']))
 
     return medias
 
