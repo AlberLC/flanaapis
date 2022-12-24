@@ -73,18 +73,34 @@ async def get_media(
     output_file_path = pathlib.Path(output_file_name)
     bytes_ = output_file_path.read_bytes()
 
-    if audio_only:
-        type_ = MediaType.AUDIO
-    elif extension == 'gif':
-        type_ = MediaType.GIF
-    else:
-        type_ = MediaType.VIDEO
-
     source = media_info.get('extractor_key', '')
     try:
         source = Source[source.upper()]
     except (AttributeError, KeyError):
-        pass
+        if 'generic' == source.lower():
+            bytes_format = await flanautils.get_format(bytes_)
+            if any(format_ in bytes_format for format_ in ('jfif', 'jpeg', 'jpg', 'png', 'tiff')):
+                type_ = MediaType.IMAGE
+            elif 'gif' in bytes_format:
+                type_ = MediaType.GIF
+            elif any(format_ in bytes_format for format_ in ('aac', 'flac', 'm4a', 'mp3', 'wav')):
+                type_ = MediaType.AUDIO
+            elif any(format_ in bytes_format for format_ in ('avchd', 'avi', 'flv', 'mkv', 'mov', 'mp4', 'webm', 'wmv')):
+                type_ = MediaType.VIDEO
+            else:
+                type_ = None
+
+            if domains := flanautils.find_url_domains(url):
+                source = domains[0]
+            else:
+                source = None
+    else:
+        if audio_only:
+            type_ = MediaType.AUDIO
+        elif extension == 'gif':
+            type_ = MediaType.GIF
+        else:
+            type_ = MediaType.VIDEO
 
     if title := media_info.get('title'):
         title = title[:constants.YT_DLP_WRAPPER_TITLE_MAX_LENGTH]
