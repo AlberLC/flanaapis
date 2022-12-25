@@ -79,11 +79,13 @@ async def get_media(
     output_file_path = pathlib.Path(output_file_name)
     bytes_ = output_file_path.read_bytes()
 
-    source = media_info.get('extractor_key', '')
+    type_ = None
+    source = None
+    extractor_key = media_info.get('extractor_key', '')
     try:
-        source = Source[source.upper()]
+        source = Source[extractor_key.upper()]
     except (AttributeError, KeyError):
-        if 'generic' == source.lower():
+        if 'generic' == extractor_key.lower():
             bytes_format = await flanautils.get_format(bytes_)
             if any(format_ in bytes_format for format_ in ('jfif', 'jpeg', 'jpg', 'png', 'tiff')):
                 type_ = MediaType.IMAGE
@@ -93,13 +95,9 @@ async def get_media(
                 type_ = MediaType.AUDIO
             elif any(format_ in bytes_format for format_ in ('avchd', 'avi', 'flv', 'mkv', 'mov', 'mp4', 'webm', 'wmv')):
                 type_ = MediaType.VIDEO
-            else:
-                type_ = None
 
             if domains := flanautils.find_url_domains(url):
                 source = domains[0]
-            else:
-                source = None
     else:
         if audio_only:
             type_ = MediaType.AUDIO
@@ -130,14 +128,7 @@ async def get_media(
     else:
         song_info = None
 
-    return Media(
-        bytes_,
-        type_,
-        extension,
-        source=source,
-        title=title,
-        song_info=song_info
-    )
+    return Media(bytes_, type_, extension, source, title, song_info=song_info)
 
 
 async def get_medias(
