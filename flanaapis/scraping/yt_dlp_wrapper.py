@@ -58,8 +58,14 @@ async def get_media(
 
     if not media_info:
         for path in pathlib.Path().iterdir():
-            if path.stem == output_file_stem:
-                path.unlink()
+            if str(path).split('.', maxsplit=1)[0] == output_file_stem:
+                while True:
+                    try:
+                        path.unlink()
+                    except PermissionError:
+                        await asyncio.sleep(1)
+                    else:
+                        break
                 break
         return
 
