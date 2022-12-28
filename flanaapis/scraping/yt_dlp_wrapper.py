@@ -57,27 +57,27 @@ async def get_media(
         media_info = None
 
     if not media_info:
-        for path in pathlib.Path().iterdir():
-            if str(path).split('.', maxsplit=1)[0] == output_file_stem:
-                while True:
-                    try:
-                        path.unlink()
-                    except PermissionError:
-                        await asyncio.sleep(1)
-                    else:
-                        break
-                break
+        for path in flanautils.find_paths_by_stem(output_file_stem):
+            while True:
+                try:
+                    path.unlink()
+                except PermissionError:
+                    await asyncio.sleep(1)
+                else:
+                    break
         return
 
+    output_file_path = next(flanautils.find_paths_by_stem(output_file_stem, lazy=True))
+    bytes_ = output_file_path.read_bytes()
+
     if (
+            not (extension := output_file_path.suffix.strip('.'))
+            and
             not (extension := media_info.get('final_extension'))
             and
             (output_file_name := media_info.get('output_file_name'))
     ):
         extension = pathlib.Path(output_file_name).suffix.strip('.')
-    output_file_name = f'{output_file_stem}.{extension}' if extension else output_file_stem
-    output_file_path = pathlib.Path(output_file_name)
-    bytes_ = output_file_path.read_bytes()
 
     type_ = None
     source = None
