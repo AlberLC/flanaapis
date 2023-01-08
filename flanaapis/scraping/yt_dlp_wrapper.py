@@ -91,10 +91,10 @@ async def get_media(
                 type_ = MediaType.IMAGE
             elif 'gif' in bytes_format:
                 type_ = MediaType.GIF
-            elif any(format_ in bytes_format for format_ in ('aac', 'flac', 'm4a', 'mp3', 'wav')):
-                type_ = MediaType.AUDIO
             elif any(format_ in bytes_format for format_ in ('avchd', 'avi', 'flv', 'mkv', 'mov', 'mp4', 'webm', 'wmv')):
                 type_ = MediaType.VIDEO
+            elif any(format_ in bytes_format for format_ in ('aac', 'flac', 'm4a', 'mp3', 'wav')):
+                type_ = MediaType.AUDIO
 
             if domains := flanautils.find_url_domains(url):
                 source = domains[0]
