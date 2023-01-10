@@ -28,7 +28,6 @@ async def find_users_and_ids(text: str) -> OrderedSet[str]:
 async def get_desktop_urls(text: str) -> OrderedSet[str]:
     mobile_ids = re.findall(r'vm\.tiktok\.com/(\w+)', text)
     mobile_urls = [f'https://vm.tiktok.com/{mobile_id}/' for mobile_id in mobile_ids]
-    'https://www.tiktok.com/t/ZTRVN7RgG/'
     t_ids = re.findall(r'tok.*t/(\w+)', text)
     t_urls = [f'{constants.TIKTOK_BASE_URL}t/{t_id}' for t_id in t_ids]
     return OrderedSet([str((await flanautils.get_request(mobile_url, headers={'User-Agent': constants.USER_AGENT}, return_response=True)).url) for mobile_url in mobile_urls + t_urls])
