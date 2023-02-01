@@ -33,6 +33,8 @@ async def get_media(
     audio_only=False,
     timeout: int | float = None
 ) -> Media | None:
+    url = await flanautils.resolve_real_url(url)
+
     output_file_stem = str(uuid.uuid1())
 
     options = {
