@@ -36,6 +36,7 @@ async def get_medias(
             except ResponseError:
                 continue
 
+            data = data[0]['data']['children'][0]['data']
             medias |= await get_medias_from_data(
                 data,
                 preferred_video_codec,
@@ -55,7 +56,7 @@ async def get_medias(
 
 
 async def get_medias_from_data(
-    data: list[dict],
+    data: dict,
     preferred_video_codec: str = None,
     preferred_extension: str = None,
     force=False,
@@ -64,19 +65,13 @@ async def get_medias_from_data(
 ) -> OrderedSet[Media]:
     medias = OrderedSet()
 
-    data = data[0]['data']['children'][0]['data']
+    for crosspost_data in data.get('crosspost_parent_list', ()):
+        medias |= await get_medias_from_data(crosspost_data)
+
     data['url'] = html.unescape(data['url'])
 
     # image
-    if (
-            data.get('post_hint') == 'image'
-            or
-            data.get('is_reddit_media_domain')
-            and
-            not data.get('is_video')
-            and
-            data['url']
-    ):
+    if data.get('post_hint') == 'image':
         extension = pathlib.Path(data['url']).suffix.strip('.')
         medias.add(Media(data['url'], MediaType.IMAGE, extension, Source.REDDIT))
 
