@@ -81,25 +81,24 @@ async def get_media(
     ):
         extension = pathlib.Path(output_file_name).suffix.strip('.')
 
-    type_ = None
-    source = None
     extractor_key = media_info.get('extractor_key', '')
-    try:
-        source = Source[extractor_key.upper()]
-    except (AttributeError, KeyError):
-        if 'generic' == extractor_key.lower():
-            bytes_format = await flanautils.get_format(bytes_)
-            if any(format_ in bytes_format for format_ in ('jfif', 'jpeg', 'jpg', 'png', 'tiff')):
-                type_ = MediaType.IMAGE
-            elif 'gif' in bytes_format:
-                type_ = MediaType.GIF
-            elif any(format_ in bytes_format for format_ in ('avchd', 'avi', 'flv', 'mkv', 'mov', 'mp4', 'webm', 'wmv')):
-                type_ = MediaType.VIDEO
-            elif any(format_ in bytes_format for format_ in ('aac', 'flac', 'm4a', 'mp3', 'wav')):
-                type_ = MediaType.AUDIO
+    if 'generic' == extractor_key.lower():
+        bytes_format = await flanautils.get_format(bytes_)
+        if any(format_ in bytes_format for format_ in ('jfif', 'jpeg', 'jpg', 'png', 'tiff')):
+            type_ = MediaType.IMAGE
+        elif 'gif' in bytes_format:
+            type_ = MediaType.GIF
+        elif any(format_ in bytes_format for format_ in ('avchd', 'avi', 'flv', 'mkv', 'mov', 'mp4', 'webm', 'wmv')):
+            type_ = MediaType.VIDEO
+        elif any(format_ in bytes_format for format_ in ('aac', 'flac', 'm4a', 'mp3', 'wav')):
+            type_ = MediaType.AUDIO
+        else:
+            type_ = None
 
-            if domains := flanautils.find_url_domains(url):
-                source = domains[0]
+        if domains := flanautils.find_url_domains(url):
+            source = domains[0]
+        else:
+            source = None
     else:
         if audio_only:
             type_ = MediaType.AUDIO
@@ -107,6 +106,11 @@ async def get_media(
             type_ = MediaType.GIF
         else:
             type_ = MediaType.VIDEO
+
+        try:
+            source = Source[extractor_key.upper()]
+        except (AttributeError, KeyError):
+            source = extractor_key
 
     if title := media_info.get('title'):
         title = title[:constants.YT_DLP_WRAPPER_TITLE_MAX_LENGTH]
