@@ -113,7 +113,7 @@ async def get_media(
             source = extractor_key
 
     if title := media_info.get('title'):
-        title = title[:constants.YT_DLP_WRAPPER_TITLE_MAX_LENGTH]
+        title = title[:constants.YT_DLP_WRAPPER_TITLE_MAX_LENGTH].strip()
         try:
             bytes_ = await flanautils.edit_metadata(output_file_path, {'title': title}, overwrite=False)
         except FileNotFoundError:
