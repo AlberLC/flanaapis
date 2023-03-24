@@ -10,7 +10,7 @@ from flanaapis.scraping import constants, functions, yt_dlp_wrapper
 
 
 async def _find_ids(text: str, pattern: str) -> OrderedSet[str]:
-    return OrderedSet(re.findall(pattern, text), re.findall(pattern, ''.join(await get_desktop_urls(text))))
+    return OrderedSet(re.findall(pattern, '\n'.join((text, *await get_desktop_urls(text)))))
 
 
 def find_download_urls(text: str) -> OrderedSet[str]:
