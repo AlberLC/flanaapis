@@ -15,7 +15,7 @@ def find_ids(text: str) -> OrderedSet[str]:
 
 
 def find_media_urls(text: str) -> list[str]:
-    return re.findall(r'https(?:(?!https).)*?sid=\w{6}', text)
+    return re.findall(r'https(?:(?!http|\"|\.insta).)*=[0-9a-fA-F]+', text)
 
 
 async def get_medias(ids: Iterable[str], audio_only=False) -> OrderedSet[Media]:
@@ -46,28 +46,32 @@ async def get_medias(ids: Iterable[str], audio_only=False) -> OrderedSet[Media]:
 
 
 def get_post_medias(media_urls: list[str]) -> OrderedSet[Media]:
+    def get_video_id(media_url_: str) -> str:
+        return re.findall('/((?:(?!/).)*)\.mp4', media_url_)[0]
+
     last_url = ''
+    last_video_url = ''
+    last_video_id = ''
     final_urls = OrderedSet()
     thumbnail_urls = OrderedSet()
     for media_url in media_urls:
         if (
-                r'\/' in media_url
-                or
-                not re.findall(r'\.(?:jpg|webp)\?stp=dst-jpg_e[13]5&.+cache', media_url)
+                not re.findall('-15/.*=dst-jpg', media_url)
                 and
-                not re.findall('e0&cb.*cache', media_url)
-                and
-                not re.findall('jpg.*[ps]1080', media_url)
-                and
-                '.mp4?efg' not in media_url
-                and
-                '.mp4?_nc_ht=' not in media_url
+                'mp4' not in media_url
         ):
             last_url = ''
             continue
 
-        if '.mp4?' in media_url and 'jpg' in last_url:
-            thumbnail_urls.add(last_url)
+        if 'jpg' in media_url:
+            if 'mp4' in last_url:
+                thumbnail_urls.add(media_url)
+        else:
+            video_id = get_video_id(media_url)
+            if video_id == last_video_id:
+                final_urls -= last_video_url
+            last_video_url = media_url
+            last_video_id = video_id
         final_urls.add(media_url)
 
         last_url = media_url
@@ -76,12 +80,12 @@ def get_post_medias(media_urls: list[str]) -> OrderedSet[Media]:
 
     content_medias = OrderedSet()
     for final_url in final_urls:
-        if '.mp4?' in final_url:
-            media_type = MediaType.VIDEO
-            extension = 'mp4'
-        else:
+        if 'jpg' in final_url:
             media_type = MediaType.IMAGE
             extension = 'jpg'
+        else:
+            media_type = MediaType.VIDEO
+            extension = 'mp4'
         content_medias.add(Media(final_url, media_type, extension, Source.INSTAGRAM))
     return content_medias
 
