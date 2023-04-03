@@ -45,6 +45,8 @@ class TestInstagramScraper(unittest.IsolatedAsyncioTestCase):
             await self._test_one_media('https://www.instagram.com/p/CRgotu_I4tt/', MediaType.VIDEO)  # valorant video dance
         with self.subTest('video_2'):
             await self._test_one_media('https://www.instagram.com/p/CZQAs7cINzZ/', MediaType.VIDEO)  # girl video party
+        with self.subTest('video_3'):
+            await self._test_one_media('https://www.instagram.com/reel/CqWosLCD46Y/', MediaType.VIDEO)  # the pope
         with self.subTest('video_without_sound'):
             await self._test_one_media('https://www.instagram.com/p/CRgiVOEIjZ-/', MediaType.VIDEO)  # sage video without sound
         with self.subTest('long_video_1'):
@@ -53,9 +55,12 @@ class TestInstagramScraper(unittest.IsolatedAsyncioTestCase):
             await self._test_one_media('https://www.instagram.com/tv/CbLGc7vlCY_/?utm_medium=share_sheet', MediaType.VIDEO)  # long video cateto bocadillo
 
     async def test_image_album(self):
-        await self._test_image_album('https://www.instagram.com/p/CqJT0UyOxTE/', 2)  # 2 images of the little mermaid
-        await self._test_image_album('https://www.instagram.com/p/CqVqOe-t_Rr/', 8)  # 8 images of beach stones
-        await self._test_image_album('https://www.instagram.com/p/CqN3q1bLezt/', 9)  # 9 images of psychology things
+        with self.subTest('image_album_1'):
+            await self._test_image_album('https://www.instagram.com/p/CqJT0UyOxTE/', 2)  # 2 images of the little mermaid
+        with self.subTest('image_album_2'):
+            await self._test_image_album('https://www.instagram.com/p/CqVqOe-t_Rr/', 8)  # 8 images of beach stones
+        with self.subTest('image_album_3'):
+            await self._test_image_album('https://www.instagram.com/p/CqN3q1bLezt/', 9)  # 9 images of psychology things
 
     async def test_video_album(self):
         medias = await instagram.get_medias(instagram.find_ids('https://www.instagram.com/p/CRjl72oFdmV/'))  # 2 valorant skins videos
@@ -95,16 +100,16 @@ class TestInstagramScraper(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(MediaType.IMAGE, medias[0].type_)
         self.assertEqual(Source.INSTAGRAM, medias[0].source)
         self.assertIsNotNone(medias[1].url)
-        self.assertEqual(MediaType.IMAGE, medias[1].type_)
+        self.assertEqual(MediaType.VIDEO, medias[1].type_)
         self.assertEqual(Source.INSTAGRAM, medias[1].source)
         self.assertIsNotNone(medias[2].url)
-        self.assertEqual(MediaType.IMAGE, medias[2].type_)
+        self.assertEqual(MediaType.VIDEO, medias[2].type_)
         self.assertEqual(Source.INSTAGRAM, medias[2].source)
         self.assertIsNotNone(medias[3].url)
-        self.assertEqual(MediaType.VIDEO, medias[3].type_)
+        self.assertEqual(MediaType.IMAGE, medias[3].type_)
         self.assertEqual(Source.INSTAGRAM, medias[3].source)
         self.assertIsNotNone(medias[4].url)
-        self.assertEqual(MediaType.VIDEO, medias[4].type_)
+        self.assertEqual(MediaType.IMAGE, medias[4].type_)
         self.assertEqual(Source.INSTAGRAM, medias[4].source)
 
     async def test_images_and_videos_3(self):
