@@ -3,6 +3,8 @@ import urllib.parse
 from typing import AsyncIterable
 
 import playwright
+from playwright.async_api import async_playwright
+
 from flanaapis.geolocation.models import Place
 from playwright.async_api import async_playwright
 
@@ -13,9 +15,8 @@ async def find_place(place_query: str) -> Place | None:
             try:
                 page: playwright.async_api.Page = await browser.new_page()
                 await page.goto(f"https://www.google.es/maps/search/{'+'.join(place_query.split())}")
-                button = page.locator("'Acepto'")
-                if await button.count():
-                    await button.click()
+                if await (button := page.locator("'Acepto'")).count() or await (button := page.locator("'Aceptar todo'")).count():
+                    await button.first.click()
                 while '@' not in page.url:
                     await page.wait_for_event('framenavigated')
 
@@ -44,7 +45,7 @@ async def find_place_showing_progress(place_query: str) -> AsyncIterable[str | P
                 yield 'Dirigiéndome a google.es/maps...'
                 await page.goto(f"https://www.google.es/maps/search/{'+'.join(place_query.split())}")
 
-                if await (button := page.locator("button:has-text('Acepto')")).count() or await (button := page.locator("button:has-text('Aceptar todo')")).count():
+                if await (button := page.locator("'Acepto'")).count() or await (button := page.locator("'Aceptar todo'")).count():
                     yield 'Aceptando consentimiento de privacidad...'
                     await button.first.click()
 
