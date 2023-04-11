@@ -6,7 +6,6 @@ import playwright
 from playwright.async_api import async_playwright
 
 from flanaapis.geolocation.models import Place
-from playwright.async_api import async_playwright
 
 
 async def find_place(place_query: str) -> Place | None:
