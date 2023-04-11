@@ -105,7 +105,7 @@ def find_ids(text: str) -> OrderedSet[str]:
 
 
 def find_media_urls(text: str) -> list[str]:
-    return re.findall(r'https(?:(?!http|\"|\.insta).)*=[0-9a-fA-F]+', text)
+    return re.findall('https(?:(?!http|\"|\.insta).)*=[0-9a-fA-F]+', text)
 
 
 async def get_html(url: str) -> str:

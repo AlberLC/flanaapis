@@ -26,7 +26,7 @@ async def find_place(place_query: str) -> Place | None:
                 return
 
             try:
-                place_name, latitude, longitude = re.findall(r'(?:place|search)/\d*(.+)/@([\d.-]+),([\d.-]+)', page.url)[0]
+                place_name, latitude, longitude = re.findall('(?:place|search)/\d*(.+)/@([\d.-]+),([\d.-]+)', page.url)[0]
             except IndexError:
                 return
 
@@ -61,7 +61,7 @@ async def find_place_showing_progress(place_query: str) -> AsyncIterable[str | P
                 return
 
             try:
-                place_name, latitude, longitude = re.findall(r'(?:place|search)/\d*(.+)/@([\d.-]+),([\d.-]+)', page.url)[0]
+                place_name, latitude, longitude = re.findall('(?:place|search)/\d*(.+)/@([\d.-]+),([\d.-]+)', page.url)[0]
             except IndexError:
                 yield
                 return
