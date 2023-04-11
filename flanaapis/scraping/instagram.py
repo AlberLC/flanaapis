@@ -101,7 +101,7 @@ def filter_media_urls_v2(media_urls: list[str]) -> OrderedSet[Media]:
 
 
 def find_ids(text: str) -> OrderedSet[str]:
-    return OrderedSet(re.findall(r'gram\.com/.+?/(.{11})', text))
+    return OrderedSet(re.findall('gram\.com(?!/stories).+?/(.{11})', text))
 
 
 def find_media_urls(text: str) -> list[str]:
