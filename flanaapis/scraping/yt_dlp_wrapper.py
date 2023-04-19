@@ -69,7 +69,11 @@ async def get_media(
                     break
         return
 
-    output_file_path = next(flanautils.find_paths_by_stem(output_file_stem, lazy=True))
+    try:
+        output_file_path = next(flanautils.find_paths_by_stem(output_file_stem, lazy=True))
+    except StopIteration:
+        return
+
     bytes_ = output_file_path.read_bytes()
 
     if (
