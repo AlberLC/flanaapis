@@ -22,8 +22,9 @@ async def get_medias(ids: Iterable[str], audio_only=False) -> OrderedSet[Media]:
 
     medias: OrderedSet[Media] = OrderedSet()
 
-    while referenced_ids := find_ids(await get_referenced_tweet_urls(ids)) - ids:
-        ids |= referenced_ids
+    # Paid Twitter API v2
+    # while referenced_ids := find_ids(await get_referenced_tweet_urls(ids)) - ids:
+    #     ids |= referenced_ids
     if not ids:
         return medias
 
