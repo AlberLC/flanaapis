@@ -7,7 +7,7 @@ from fastapi import APIRouter
 from flanautils import Media
 from pydantic import BaseModel
 
-from flanaapis.scraping import instagram, tiktok, twitter, youtube
+from flanaapis.scraping import instagram, tiktok, twitter, yt_dlp_wrapper
 
 router = APIRouter(prefix='/medias')
 
@@ -53,5 +53,5 @@ async def get_medias(input_: Input):
         *await twitter.get_medias(twitter.find_ids(input_.text)),
         *await instagram.get_medias(instagram.find_ids(input_.text)),
         *await tiktok.get_medias(await tiktok.find_ids(input_.text), tiktok.find_download_urls(input_.text)),
-        *await youtube.get_medias(youtube.find_youtube_ids(input_.text))
+        *await yt_dlp_wrapper.get_medias(input_.text)
     )]
