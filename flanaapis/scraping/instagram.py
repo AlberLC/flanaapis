@@ -127,7 +127,7 @@ async def get_html(url: str) -> str:
                 default_browser_type='chromium',
                 locale='es-ES'
             )
-            context.set_default_timeout(3000)
+            context.set_default_timeout(5000)
 
             page = await context.new_page()
             await page.goto(url, timeout=30000)
