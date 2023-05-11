@@ -24,11 +24,11 @@ def filter_media_urls(media_urls: list[str]) -> OrderedSet[Media]:
 
     for media_url in media_urls:
         if (
-                not re.findall('(?:-15/.*=dst-jpg_e\d{2}|mp4).*sid=\w+$', media_url)
-                or
-                sid
-                and
-                sid != get_media_url_sid(media_url)
+            not re.findall('(?:-15/.*=dst-jpg_e\d{2}|mp4).*sid=\w+$', media_url)
+            or
+            sid
+            and
+            sid != get_media_url_sid(media_url)
         ):
             last_url = ''
             continue
@@ -65,9 +65,9 @@ def filter_media_urls_v2(media_urls: list[str]) -> OrderedSet[Media]:
     thumbnail_urls = OrderedSet()
     for media_url in media_urls:
         if (
-                not re.findall('-15/.*=dst-jpg', media_url)
-                and
-                'mp4' not in media_url
+            not re.findall('-15/.*=dst-jpg', media_url)
+            and
+            'mp4' not in media_url
         ):
             last_url = ''
             continue
