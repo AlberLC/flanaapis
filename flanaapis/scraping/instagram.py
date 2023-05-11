@@ -133,7 +133,7 @@ async def get_html(url: str) -> str:
             await page.goto(url, timeout=30000)
 
             try:
-                await page.click("'Permitir solo cookies necesarias'")
+                await page.locator("button:text('cookies')").nth(1).click()
             except playwright.async_api.Error:
                 pass
             await page.wait_for_load_state('networkidle')
