@@ -17,6 +17,7 @@ frozenlist==1.3.3
 greenlet==2.0.1
 h11==0.14.0
 idna==3.4
+jeepney==0.8.0
 jellyfish==0.9.0
 kaleido==0.2.1
 mpmath==1.2.1
