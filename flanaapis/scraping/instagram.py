@@ -110,7 +110,7 @@ def find_media_urls(text: str) -> list[str]:
 
 async def get_html(url: str) -> str:
     async with playwright.async_api.async_playwright() as playwright_:
-        async with await playwright_.chromium.launch() as browser:
+        async with await playwright_.chromium.launch(headless=False) as browser:
             context: playwright.async_api.BrowserContext = await browser.new_context(
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.5615.49 Safari/537.36',
                 screen={
@@ -137,6 +137,14 @@ async def get_html(url: str) -> str:
             except playwright.async_api.Error:
                 pass
             await page.wait_for_load_state('networkidle')
+
+            try:
+                await page.wait_for_selector("'Vídeo restringido'")
+            except playwright.async_api.Error:
+                if page.locator("'mayor de 18 para ver'").count():
+                    raise InstagramMediaNotFoundError('age restricted')
+            else:
+                raise InstagramMediaNotFoundError('age restricted')
 
             try:
                 button = await page.wait_for_selector("button[aria-label='Siguiente']")
@@ -167,7 +175,11 @@ async def get_medias(ids: Iterable[str], audio_only=False) -> OrderedSet[Media]:
         return medias
 
     for url in urls:
-        medias |= filter_media_urls(find_media_urls(await get_html(url)))
+        try:
+            medias |= filter_media_urls(find_media_urls(await get_html(url)))
+        except InstagramMediaNotFoundError as e:
+            if 'age restricted' in str(e):
+                medias.add(Media(find_ids(url)[0], MediaType.ERROR, source=Source.INSTAGRAM))
 
     if not medias:
         raise InstagramMediaNotFoundError
