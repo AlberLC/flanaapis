@@ -141,7 +141,7 @@ async def get_html(url: str) -> str:
             try:
                 await page.wait_for_selector("'Vídeo restringido'")
             except playwright.async_api.Error:
-                if page.locator("'mayor de 18 para ver'").count():
+                if await page.locator("'mayor de 18 para ver'").count():
                     raise InstagramMediaNotFoundError('age restricted')
             else:
                 raise InstagramMediaNotFoundError('age restricted')
