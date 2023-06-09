@@ -1,8 +1,6 @@
-import os
 import re
 from typing import Iterable
 
-import aiohttp
 import flanautils
 from flanautils import Media, MediaType, OrderedSet, ResponseError, Source, return_if_first_empty
 
@@ -28,12 +26,8 @@ async def get_medias(ids: Iterable[str], audio_only=False) -> OrderedSet[Media]:
     if not ids:
         return medias
 
-    try:
-        tweets_data = await get_tweet_data(constants.TWITTER_ENDPOINT_V1, params={'id': ','.join(ids), 'tweet_mode': 'extended'})
-    except aiohttp.ClientError:
-        tweets_data = []
-
-    for tweet_data in tweets_data:
+    for id in ids:
+        tweet_data = await get_tweet_data(constants.TWITTER_ENDPOINT_V1, params={'id': id, 'tweet_mode': 'extended'})
         try:
             medias_data = tweet_data['extended_entities']['media']
         except KeyError:
@@ -74,7 +68,7 @@ async def get_referenced_tweet_urls(ids: Iterable[str]) -> list[str]:
 
 
 async def get_tweet_data(url: str, params: dict) -> dict:
-    data = await flanautils.get_request(url, params, headers={'Authorization': f"Bearer {os.environ['TWITTER_BEARER_TOKEN']}"})
+    data = await flanautils.get_request(url, params, headers={'Authorization': f"Bearer {constants.TWITTER_OPEN_BEARER_TOKEN_1}"})
     try:
         return data['data']
     except (TypeError, KeyError):
