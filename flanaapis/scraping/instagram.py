@@ -158,7 +158,7 @@ async def get_html(url: str) -> str:
 
 
 def get_media_url_id(media_url_: str) -> str:
-    return re.findall('/((?:(?!/).)*)\.(?:jpg|webp|mp4)', media_url_)[0]
+    return re.findall('/((?:(?!/).)*)\.\w+\?', media_url_)[0]
 
 
 def get_media_url_sid(media_url_: str) -> str | None:
