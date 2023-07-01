@@ -27,7 +27,11 @@ async def get_medias(ids: Iterable[str], audio_only=False) -> OrderedSet[Media]:
         return medias
 
     for id in ids:
-        tweet_data = await get_tweet_data(constants.TWITTER_ENDPOINT_V1, params={'id': id, 'tweet_mode': 'extended'})
+        try:
+            tweet_data = await get_tweet_data(constants.TWITTER_ENDPOINT_V1, params={'id': id, 'tweet_mode': 'extended'})
+        except flanautils.ResponseError:
+            continue
+
         try:
             medias_data = tweet_data['extended_entities']['media']
         except KeyError:
