@@ -24,7 +24,7 @@ def filter_media_urls(media_urls: list[str]) -> OrderedSet[Media]:
 
     for media_url in media_urls:
         if (
-            not re.findall('(?:-15/.*=dst-jpg_e\d{2}|mp4).*sid=\w+$', media_url)
+            not re.findall('(?:=dst-jpg_e\d{2}|mp4).*sid=\w+$', media_url)
             or
             sid
             and
