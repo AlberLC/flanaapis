@@ -24,7 +24,7 @@ def filter_media_urls(media_urls: list[str]) -> OrderedSet[Media]:
 
     for media_url in media_urls:
         if (
-            not re.findall('(?:=dst-jpg_e\d{2}|mp4).*sid=\w+$', media_url)
+            not re.findall(r'(?:=dst-jpg_e\d{2}|mp4).*sid=\w+$', media_url)
             or
             sid
             and
@@ -101,11 +101,11 @@ def filter_media_urls_v2(media_urls: list[str]) -> OrderedSet[Media]:
 
 
 def find_ids(text: str) -> OrderedSet[str]:
-    return OrderedSet(re.findall('gram\.com(?!/stories).+?/(.{11})', text))
+    return OrderedSet(re.findall(r'gram\.com(?!/stories).+?/(.{11})', text))
 
 
 def find_media_urls(text: str) -> list[str]:
-    return re.findall('https(?:(?!http|\"|\.insta).)*=[0-9a-fA-F]+', text)
+    return re.findall(r'https(?:(?!http|\"|\.insta).)*=[0-9a-fA-F]+', text)
 
 
 async def get_html(url: str) -> str:
@@ -158,12 +158,12 @@ async def get_html(url: str) -> str:
 
 
 def get_media_url_id(media_url_: str) -> str:
-    return re.findall('/((?:(?!/).)*)\.\w+\?', media_url_)[0]
+    return re.findall(r'/((?:(?!/).)*)\.\w+\?', media_url_)[0]
 
 
 def get_media_url_sid(media_url_: str) -> str | None:
     try:
-        return re.findall('sid=(\w+)', media_url_)[0]
+        return re.findall(r'sid=(\w+)', media_url_)[0]
     except IndexError:
         pass
 

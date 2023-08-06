@@ -13,7 +13,7 @@ from flanaapis.scraping import constants, functions, instagram, tiktok, twitter
 
 
 def find_ids(text: str) -> OrderedSet[str]:
-    return OrderedSet(re.findall('ddit.*ments/(\w+)/', text))
+    return OrderedSet(re.findall(r'ddit.*ments/(\w+)/', text))
 
 
 async def get_medias(
@@ -98,7 +98,7 @@ async def get_medias_from_data(
     if internal_hosted_video_urls:
         for internal_hosted_video_url in internal_hosted_video_urls:
             video_url = html.unescape(internal_hosted_video_url)
-            audio_url = re.sub('_\d+\.mp4', '_audio.mp4', video_url)
+            audio_url = re.sub(r'_\d+\.mp4', '_audio.mp4', video_url)
             try:
                 video_bytes = await flanautils.get_request(video_url)
             except ResponseError:
@@ -113,15 +113,15 @@ async def get_medias_from_data(
 
     # external media
     if (
-            not data.get('is_self')
-            and
-            data.get('post_hint') != 'image'
-            and
-            not data.get('is_gallery')
-            and
-            not internal_hosted_video_urls
-            and
-            data['url']
+        not data.get('is_self')
+        and
+        data.get('post_hint') != 'image'
+        and
+        not data.get('is_gallery')
+        and
+        not internal_hosted_video_urls
+        and
+        data['url']
     ):
         if 'instagram' in data['url']:
             medias |= await instagram.get_medias(instagram.find_ids(data['url']))

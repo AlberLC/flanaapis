@@ -12,7 +12,7 @@ from flanaapis.scraping import constants, functions
 def find_ids(text: str | list[str]) -> OrderedSet[str]:
     if isinstance(text, list):
         text = ''.join(text)
-    return OrderedSet(re.findall('atus/(\d+)', text))
+    return OrderedSet(re.findall(r'atus/(\d+)', text))
 
 
 async def get_medias(ids: Iterable[str], audio_only=False) -> OrderedSet[Media]:

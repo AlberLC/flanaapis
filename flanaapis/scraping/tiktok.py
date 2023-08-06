@@ -14,22 +14,22 @@ async def _find_ids(text: str, pattern: str) -> OrderedSet[str]:
 
 
 def find_download_urls(text: str) -> OrderedSet[str]:
-    partial_download_urls = re.findall('web\.tiktok\.com.+=&vr=', text)
+    partial_download_urls = re.findall(r'web\.tiktok\.com.+=&vr=', text)
     return OrderedSet(f'https://v16-{partial_download_url}' for partial_download_url in partial_download_urls)
 
 
 async def find_ids(text: str) -> OrderedSet[str]:
-    return await _find_ids(text, 'tok.*[tv](?:ideo)?/(\d+)')
+    return await _find_ids(text, r'tok.*[tv](?:ideo)?/(\d+)')
 
 
 async def find_users_and_ids(text: str) -> OrderedSet[str]:
-    return await _find_ids(text, 'tok\.com/(.*/\d+)')
+    return await _find_ids(text, r'tok\.com/(.*/\d+)')
 
 
 async def get_desktop_urls(text: str) -> OrderedSet[str]:
-    mobile_ids = re.findall('vm\.tiktok\.com/(\w+)', text)
+    mobile_ids = re.findall(r'vm\.tiktok\.com/(\w+)', text)
     mobile_urls = [f'https://vm.tiktok.com/{mobile_id}/' for mobile_id in mobile_ids]
-    t_ids = re.findall('tok.*t/(\w+)', text)
+    t_ids = re.findall(r'tok.*t/(\w+)', text)
     t_urls = [f'{constants.TIKTOK_BASE_URL}t/{t_id}' for t_id in t_ids]
     return OrderedSet([str((await flanautils.get_request(mobile_url, headers={'User-Agent': random.choice(constants.GOOGLE_BOT_USER_AGENTS)}, return_response=True)).url) for mobile_url in mobile_urls + t_urls])
 
