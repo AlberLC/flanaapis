@@ -62,7 +62,7 @@ class TestInstagramScraper(unittest.IsolatedAsyncioTestCase):
         with self.subTest('image_album_3'):
             await self._test_image_album('https://www.instagram.com/p/CqN3q1bLezt/', 9)  # 9 images of psychology things
 
-    # async def test_video_album(self):
+    # async def test_video_album_1(self):
     #     medias = await instagram.get_medias(instagram.find_ids('https://www.instagram.com/p/CRjl72oFdmV/'))  # 2 valorant skins videos
     #
     #     n_medias = 2
@@ -71,6 +71,16 @@ class TestInstagramScraper(unittest.IsolatedAsyncioTestCase):
     #         self.assertIsNotNone(medias[i].url)
     #         self.assertEqual(MediaType.VIDEO, medias[i].type_)
     #         self.assertEqual(Source.INSTAGRAM, medias[i].source)
+
+    async def test_video_album_2(self):
+        medias = await instagram.get_medias(instagram.find_ids('https://www.instagram.com/p/CvSJCAAIaPT/?igshid=MzRlODBiNWFlZA=='))  # 4 wool frog videos
+
+        n_medias = 4
+        self.assertEqual(n_medias, len(medias))
+        for i in range(n_medias):
+            self.assertIsNotNone(medias[i].url)
+            self.assertEqual(MediaType.VIDEO, medias[i].type_)
+            self.assertEqual(Source.INSTAGRAM, medias[i].source)
 
     async def test_images_and_videos_1(self):
         medias = await instagram.get_medias(instagram.find_ids('https://www.instagram.com/p/CSE1EpAn7NT/'))  # 4 images and 1 video of a girl
