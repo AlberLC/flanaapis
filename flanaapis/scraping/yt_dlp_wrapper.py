@@ -3,6 +3,7 @@ import pathlib
 import uuid
 from collections.abc import Iterable
 
+import aiohttp.client_exceptions
 import flanautils
 import yt_dlp
 from flanautils import Media, MediaType, Source
@@ -33,7 +34,10 @@ async def get_media(
     audio_only=False,
     timeout: int | float = None
 ) -> Media | None:
-    url = await flanautils.resolve_real_url(url)
+    try:
+        url = await flanautils.resolve_real_url(url)
+    except aiohttp.client_exceptions.ClientConnectorCertificateError:
+        return
 
     output_file_stem = str(uuid.uuid1())
 
