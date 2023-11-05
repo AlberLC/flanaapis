@@ -124,7 +124,6 @@ async def get_html(url: str) -> str:
                 device_scale_factor=1,
                 is_mobile=False,
                 has_touch=False,
-                default_browser_type='chromium',
                 locale='es-ES'
             )
             context.set_default_timeout(5000)
@@ -136,7 +135,7 @@ async def get_html(url: str) -> str:
                 await page.locator("button:text('cookies')").nth(1).click()
             except playwright.async_api.Error:
                 pass
-            await page.wait_for_load_state('networkidle')
+            await page.wait_for_load_state('load')
 
             try:
                 await page.wait_for_selector("'Vídeo restringido'")
@@ -159,6 +158,8 @@ async def get_html(url: str) -> str:
                     htmls.append(await page.content())
             except playwright.async_api.Error:
                 pass
+
+            await context.close()
 
             return html_module.unescape(''.join(htmls)).replace('\\', '')
 
