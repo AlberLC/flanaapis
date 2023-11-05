@@ -110,7 +110,7 @@ def find_media_urls(text: str) -> list[str]:
 
 async def get_html(url: str) -> str:
     async with playwright.async_api.async_playwright() as playwright_:
-        async with await playwright_.chromium.launch() as browser:
+        async with await playwright_.firefox.launch() as browser:
             context: playwright.async_api.BrowserContext = await browser.new_context(
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.5615.49 Safari/537.36',
                 screen={
