@@ -36,7 +36,7 @@ async def get_media(
 ) -> Media | None:
     try:
         url = await flanautils.resolve_real_url(url)
-    except aiohttp.client_exceptions.ClientConnectorCertificateError:
+    except aiohttp.client_exceptions.ClientConnectorError:
         return
 
     output_file_stem = str(uuid.uuid1())
