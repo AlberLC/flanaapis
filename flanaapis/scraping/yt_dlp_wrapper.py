@@ -1,11 +1,10 @@
+import aiohttp.client_exceptions
 import asyncio
+import flanautils
 import pathlib
 import uuid
-from collections.abc import Iterable
-
-import aiohttp.client_exceptions
-import flanautils
 import yt_dlp
+from collections.abc import Iterable
 from flanautils import Media, MediaType, Source
 
 from flanaapis.scraping import constants
@@ -58,7 +57,7 @@ async def get_media(
         options['format_sort'] = options.get('format_sort', {}) | {'ext': preferred_extension}
 
     try:
-        media_info = await flanautils.run_process_async(run_youtube_dl, options, url, timeout=timeout)
+        media_info = await flanautils.run_process(run_youtube_dl, options, url, timeout=timeout)
     except asyncio.TimeoutError:
         media_info = None
 
