@@ -91,14 +91,14 @@ async def get_media(
     video_formats = ('avchd', 'avi', 'flv', 'mkv', 'mov', 'mp4', 'webm', 'wmv')
     audio_formats = ('aac', 'flac', 'm4a', 'mp3', 'wav')
     if 'generic' == extractor_key.lower():
-        formats = await flanautils.get_format(output_file_path)
-        if any(format_ in formats for format_ in image_formats):
+        format_ = await flanautils.get_format(output_file_path)
+        if any(image_format in format_ for image_format in image_formats):
             type_ = MediaType.IMAGE
-        elif 'gif' in formats:
+        elif 'gif' in format_:
             type_ = MediaType.GIF
-        elif any(format_ in formats for format_ in video_formats):
+        elif any(video_format in format_ for video_format in video_formats):
             type_ = MediaType.VIDEO
-        elif any(format_ in formats for format_ in audio_formats):
+        elif any(audio_format in format_ for audio_format in audio_formats):
             type_ = MediaType.AUDIO
         else:
             type_ = None
