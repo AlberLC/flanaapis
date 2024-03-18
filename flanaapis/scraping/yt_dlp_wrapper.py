@@ -77,8 +77,6 @@ async def get_media(
     except StopIteration:
         return
 
-    bytes_ = output_file_path.read_bytes()
-
     if (
         not (extension := output_file_path.suffix.strip('.'))
         and
@@ -93,14 +91,14 @@ async def get_media(
     video_formats = ('avchd', 'avi', 'flv', 'mkv', 'mov', 'mp4', 'webm', 'wmv')
     audio_formats = ('aac', 'flac', 'm4a', 'mp3', 'wav')
     if 'generic' == extractor_key.lower():
-        bytes_format = await flanautils.get_format(bytes_)
-        if any(format_ in bytes_format for format_ in image_formats):
+        formats = await flanautils.get_format(output_file_path)
+        if any(format_ in formats for format_ in image_formats):
             type_ = MediaType.IMAGE
-        elif 'gif' in bytes_format:
+        elif 'gif' in formats:
             type_ = MediaType.GIF
-        elif any(format_ in bytes_format for format_ in video_formats):
+        elif any(format_ in formats for format_ in video_formats):
             type_ = MediaType.VIDEO
-        elif any(format_ in bytes_format for format_ in audio_formats):
+        elif any(format_ in formats for format_ in audio_formats):
             type_ = MediaType.AUDIO
         else:
             type_ = None
@@ -124,10 +122,9 @@ async def get_media(
 
     if title := media_info.get('title'):
         title = title[:constants.YT_DLP_WRAPPER_TITLE_MAX_LENGTH].strip()
-        try:
-            bytes_ = await flanautils.edit_metadata(output_file_path, {'title': title}, overwrite=False)
-        except FileNotFoundError:
-            pass
+        bytes_ = await flanautils.edit_metadata(output_file_path, {'title': title}, overwrite=False)
+    else:
+        bytes_ = output_file_path.read_bytes()
 
     output_file_path.unlink(missing_ok=True)
 
