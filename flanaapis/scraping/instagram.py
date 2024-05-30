@@ -148,14 +148,24 @@ async def get_html(url: str) -> str:
             else:
                 raise InstagramMediaNotFoundError('age restricted')
 
-            htmls = [await page.content()]
+            if await page.locator('article').first.count():
+                async def get_content_html(page: playwright.async_api.Page) -> str:
+                    return await page.locator('article').first.inner_html()
+            elif await page.get_by_role('presentation').first.count():
+                async def get_content_html(page: playwright.async_api.Page) -> str:
+                    return await page.get_by_role('presentation').first.inner_html()
+            else:
+                async def get_content_html(page: playwright.async_api.Page) -> str:
+                    return await page.content()
+
+            htmls = [await get_content_html(page)]
 
             try:
                 button = await page.wait_for_selector("button[aria-label='Siguiente']")
                 while True:
                     await button.click()
                     await asyncio.sleep(0.2)
-                    htmls.append(await page.content())
+                    htmls.append(await get_content_html(page))
             except playwright.async_api.Error:
                 pass
 

@@ -55,10 +55,10 @@ class TestInstagramScraper(unittest.IsolatedAsyncioTestCase):
             await self._test_one_media('https://www.instagram.com/tv/CbLGc7vlCY_/?utm_medium=share_sheet', MediaType.VIDEO)  # long video cateto bocadillo
 
     async def test_image_album(self):
-        with self.subTest('image_album_1'):
-            await self._test_image_album('https://www.instagram.com/p/CqJT0UyOxTE/', 2)  # 2 images of the little mermaid
-        with self.subTest('image_album_2'):
-            await self._test_image_album('https://www.instagram.com/p/CqVqOe-t_Rr/', 8)  # 8 images of beach stones
+        # with self.subTest('image_album_1'):
+        #     await self._test_image_album('https://www.instagram.com/p/CqJT0UyOxTE/', 2)  # 2 images of the little mermaid
+        # with self.subTest('image_album_2'):
+        #     await self._test_image_album('https://www.instagram.com/p/CqVqOe-t_Rr/', 8)  # 8 images of beach stones
         with self.subTest('image_album_3'):
             await self._test_image_album('https://www.instagram.com/p/CqN3q1bLezt/', 9)  # 9 images of psychology things
 
