@@ -1,13 +1,12 @@
+import aiohttp.client_exceptions
 import asyncio
+import flanautils
 import pathlib
 import uuid
-from collections.abc import Iterable
-from typing import Any
-
-import aiohttp.client_exceptions
-import flanautils
 import yt_dlp
+from collections.abc import Iterable
 from flanautils import Media, MediaType, OrderedSet, Source
+from typing import Any
 
 from flanaapis.scraping import constants
 
@@ -21,11 +20,6 @@ async def _get_media_info(
     audio_only=False,
     timeout: int | float = None
 ) -> dict[str, str] | None:
-    try:
-        url = await flanautils.resolve_real_url(url)
-    except (ValueError, aiohttp.client_exceptions.ClientConnectorError, aiohttp.client_exceptions.InvalidURL):
-        return
-
     options = _get_options(output_file_stem, preferred_video_codec, preferred_extension, force, audio_only)
 
     try:
