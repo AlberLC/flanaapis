@@ -1,12 +1,13 @@
-import aiohttp.client_exceptions
 import asyncio
-import flanautils
 import pathlib
 import uuid
-import yt_dlp
 from collections.abc import Iterable
-from flanautils import Media, MediaType, OrderedSet, Source
 from typing import Any
+
+import aiohttp.client_exceptions
+import flanautils
+import yt_dlp
+from flanautils import Media, MediaType, OrderedSet, Source
 
 from flanaapis.scraping import constants
 
